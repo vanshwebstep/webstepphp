@@ -1,0 +1,1854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
+<title>Webstep Admin Panel</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --pink: #FF1F8E; --pink2: #FF0055; --purple: #A855F7; --sky: #38BDF8;
+    --slate-50: #f8fafc; --slate-100: #f1f5f9; --slate-200: #e2e8f0;
+    --slate-300: #cbd5e1; --slate-400: #94a3b8; --slate-500: #64748b;
+    --slate-600: #475569; --slate-700: #334155; --slate-800: #1e293b;
+    --slate-900: #0f172a; --white: #fff;
+    --radius: 12px; --shadow: 0 4px 24px rgba(0,0,0,0.08);
+  }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--slate-100); color: var(--slate-800); min-height: 100vh; }
+
+  /* ─ Login ─ */
+  #login-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: linear-gradient(135deg,#0f172a 0%,#1e293b 100%); }
+  .login-box { background: var(--white); border-radius: 20px; padding: 48px 40px; width: 380px; box-shadow: 0 25px 60px rgba(0,0,0,0.4); }
+  .login-box h1 { font-size: 1.8rem; font-weight: 800; margin-bottom: 6px; background: linear-gradient(135deg,var(--pink),var(--sky)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .login-box p { color: var(--slate-500); font-size: .9rem; margin-bottom: 28px; }
+  .form-group { margin-bottom: 18px; }
+  .form-group label { display: block; font-size: .82rem; font-weight: 600; color: var(--slate-600); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .05em; }
+  .form-group input, .form-group select, .form-group textarea {
+    width: 100%; padding: 11px 14px; border: 1.5px solid var(--slate-200); border-radius: 10px;
+    font-size: .93rem; outline: none; transition: border .2s, box-shadow .2s; background: var(--slate-50);
+  }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+    border-color: var(--pink); box-shadow: 0 0 0 3px rgba(255,31,142,.12);
+  }
+
+  /* ─ Layout ─ */
+  #app { display: none; }
+  .sidebar {
+    position: fixed; top: 0; left: 0; width: 240px; height: 100vh;
+    background: var(--slate-900); display: flex; flex-direction: column; z-index: 100;
+    box-shadow: 4px 0 20px rgba(0,0,0,0.3);
+  }
+  .sidebar-logo { padding: 28px 24px 20px; border-bottom: 1px solid rgba(255,255,255,.08); }
+  .sidebar-logo span { font-size: 1.3rem; font-weight: 800; background: linear-gradient(135deg,var(--pink),var(--sky)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .sidebar-logo small { display: block; color: var(--slate-500); font-size: .75rem; margin-top: 2px; }
+  .sidebar-nav { flex: 1; padding: 16px 12px; overflow-y: auto; }
+  .nav-section { color: var(--slate-600); font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; padding: 14px 12px 6px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+    border-radius: 8px; color: var(--slate-400); font-size: .88rem; font-weight: 500;
+    cursor: pointer; transition: all .2s; margin-bottom: 2px;
+  }
+  .nav-item:hover { background: rgba(255,255,255,.06); color: var(--white); }
+  .nav-item.active { background: linear-gradient(135deg,rgba(255,31,142,.2),rgba(56,189,248,.1)); color: var(--white); }
+  .nav-item .icon { width: 18px; text-align: center; }
+  .badge { margin-left: auto; background: var(--pink); color: var(--white); font-size: .7rem; font-weight: 700; padding: 2px 7px; border-radius: 20px; }
+  .sidebar-footer { padding: 16px 12px; border-top: 1px solid rgba(255,255,255,.08); }
+  .logout-btn { width: 100%; padding: 10px; background: rgba(255,31,142,.15); color: var(--pink); border: 1px solid rgba(255,31,142,.3); border-radius: 8px; cursor: pointer; font-weight: 600; font-size: .88rem; transition: all .2s; }
+  .logout-btn:hover { background: rgba(255,31,142,.3); }
+
+  .main { margin-left: 240px; padding: 32px; min-height: 100vh; }
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ─ Page Header ─ */
+  .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
+  .page-header h2 { font-size: 1.6rem; font-weight: 800; color: var(--slate-900); }
+  .page-header p { color: var(--slate-500); font-size: .9rem; margin-top: 2px; }
+
+  /* ─ Buttons ─ */
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px; border-radius: 8px; font-size: .88rem; font-weight: 600; cursor: pointer; border: none; transition: all .2s; }
+  .btn-primary { background: linear-gradient(135deg,var(--pink),var(--pink2)); color: var(--white); box-shadow: 0 4px 15px rgba(255,31,142,.3); }
+  .btn-primary:hover { box-shadow: 0 6px 20px rgba(255,31,142,.4); transform: translateY(-1px); }
+  .btn-secondary { background: var(--white); color: var(--slate-700); border: 1.5px solid var(--slate-200); }
+  .btn-secondary:hover { border-color: var(--pink); color: var(--pink); }
+  .btn-danger { background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; }
+  .btn-danger:hover { background: #dc2626; color: var(--white); }
+  .btn-sm { padding: 6px 12px; font-size: .8rem; }
+  .btn-success { background: #d1fae5; color: #059669; border: 1px solid #6ee7b7; }
+  .btn-success:hover { background: #059669; color: var(--white); }
+
+  /* ─ Cards / Tables ─ */
+  .card { background: var(--white); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); margin-bottom: 24px; }
+  .card-title { font-size: 1rem; font-weight: 700; color: var(--slate-800); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: .875rem; }
+  thead th { background: var(--slate-50); color: var(--slate-600); font-weight: 700; padding: 10px 14px; text-align: left; font-size: .75rem; text-transform: uppercase; letter-spacing: .05em; white-space: nowrap; }
+  tbody td { padding: 12px 14px; border-bottom: 1px solid var(--slate-100); color: var(--slate-700); vertical-align: middle; }
+  tbody tr:hover td { background: var(--slate-50); }
+  .tag { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: .75rem; font-weight: 600; }
+  .tag-popular { background: #fce7f3; color: #be185d; }
+  .tag-active { background: #d1fae5; color: #059669; }
+  .tag-inactive { background: #fee2e2; color: #dc2626; }
+  .tag-new { background: #dbeafe; color: #1d4ed8; }
+  .tag-viewed { background: #fef9c3; color: #ca8a04; }
+  .tag-contacted { background: #d1fae5; color: #059669; }
+  .tag-closed { background: var(--slate-100); color: var(--slate-500); }
+
+  /* ─ Stats ─ */
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 28px; }
+  .stat-card { background: var(--white); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); }
+  .stat-card .stat-label { color: var(--slate-500); font-size: .8rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; }
+  .stat-card .stat-val { font-size: 2rem; font-weight: 800; margin-top: 4px; background: linear-gradient(135deg,var(--pink),var(--sky)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+  /* ─ Modal ─ */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 1000; align-items: center; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--white); border-radius: 16px; padding: 32px; width: 580px; max-width: 95vw; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 60px rgba(0,0,0,.3); }
+  .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--slate-100); }
+  .modal-header h3 { font-size: 1.2rem; font-weight: 700; color: var(--slate-900); }
+  .modal-close { cursor: pointer; color: var(--slate-400); font-size: 1.4rem; background: none; border: none; line-height: 1; }
+  .modal-close:hover { color: var(--slate-700); }
+  .modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--slate-100); }
+
+  /* ─ Features input ─ */
+  .features-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
+  .feature-item { display: flex; gap: 8px; align-items: center; }
+  .feature-item input { flex: 1; }
+  .feature-item button { flex-shrink: 0; }
+  .add-feature-btn { color: var(--pink); background: none; border: 1.5px dashed var(--pink); border-radius: 8px; padding: 7px 14px; font-size: .85rem; font-weight: 600; cursor: pointer; width: 100%; margin-top: 4px; }
+
+  /* ─ Toast ─ */
+  .toast { position: fixed; bottom: 24px; right: 24px; padding: 14px 20px; border-radius: 10px; font-weight: 600; font-size: .9rem; color: var(--white); z-index: 9999; transform: translateY(100px); opacity: 0; transition: all .3s; box-shadow: 0 8px 30px rgba(0,0,0,.2); }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast.success { background: #059669; }
+  .toast.error { background: #dc2626; }
+
+  /* ─ Tabs ─ */
+  .tab-bar { display: flex; gap: 6px; margin-bottom: 20px; background: var(--white); padding: 6px; border-radius: 10px; box-shadow: var(--shadow); width: fit-content; }
+  .tab-btn { padding: 8px 18px; border-radius: 7px; font-size: .85rem; font-weight: 600; cursor: pointer; border: none; background: none; color: var(--slate-500); transition: all .2s; }
+  .tab-btn.active { background: linear-gradient(135deg,var(--pink),var(--pink2)); color: var(--white); box-shadow: 0 4px 12px rgba(255,31,142,.3); }
+
+  /* ─ Submission detail ─ */
+  .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .detail-field { background: var(--slate-50); border-radius: 8px; padding: 12px; }
+  .detail-field label { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--slate-500); display: block; margin-bottom: 4px; }
+  .detail-field span { color: var(--slate-800); font-size: .9rem; font-weight: 500; }
+  .features-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { background: #fce7f3; color: #be185d; padding: 4px 10px; border-radius: 20px; font-size: .78rem; font-weight: 600; }
+
+  @media (max-width: 768px) {
+    .sidebar { transform: translateX(-100%); transition: transform .3s; }
+    .sidebar.open { transform: translateX(0); }
+    .main { margin-left: 0; padding: 20px; }
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+    .detail-grid { grid-template-columns: 1fr; }
+  }
+
+  .ql-toolbar.ql-snow { border: 1.5px solid var(--slate-200); border-radius: 10px 10px 0 0; background: var(--white); }
+.ql-container.ql-snow { border: 1.5px solid var(--slate-200); border-top: none; border-radius: 0 0 10px 10px; font-size: .93rem; min-height: 200px; }
+.ql-editor { min-height: 200px; }
+</style>
+</head>
+<body>
+
+<!-- ─── Login ─────────────────────────────────────────────────────────────── -->
+<div id="login-screen">
+  <div class="login-box">
+    <h1>Webstep Admin</h1>
+    <p>Sign in to manage packages & inquiries</p>
+    <div class="form-group">
+      <label>Username</label>
+      <input type="text" id="login-user" placeholder="admin" value="admin">
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="login-pass" placeholder="••••••••" value="admin123">
+    </div>
+    <div id="login-err" style="color:#dc2626;font-size:.85rem;margin-bottom:12px;display:none;"></div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;padding:13px;" onclick="doLogin()">Sign In →</button>
+    <p style="margin-top:12px;font-size:.78rem;color:var(--slate-400);">Default: admin / admin123 — Change after setup!</p>
+  </div>
+</div>
+
+<!-- ─── App ───────────────────────────────────────────────────────────────── -->
+<div id="app">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <span>Webstep</span>
+      <small>Admin Panel</small>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">Overview</div>
+      <div class="nav-item active" onclick="showPage('dashboard')">
+        <span class="icon">📊</span> Dashboard
+      </div>
+      <div class="nav-section">Packages</div>
+      <div class="nav-item" onclick="showPage('tabs')">
+        <span class="icon">🏷️</span> Categories / Tabs
+      </div>
+      <div class="nav-item" onclick="showPage('packages')">
+        <span class="icon">📦</span> Packages
+      </div>
+      <div class="nav-section">Content</div>
+      <div class="nav-item" onclick="showPage('portfolio')">
+        <span class="icon">PF</span> Portfolio Projects
+      </div>
+      <div class="nav-item" onclick="showPage('blogs')">
+    <span class="icon">BL</span> Blogs
+</div>
+
+      <div class="nav-item" onclick="showPage('case-studies')">
+        <span class="icon">CS</span> Case Studies
+      </div>
+      <div class="nav-item" onclick="showPage('service-pages')">
+        <span class="icon">SP</span> Service Pages
+      </div>
+      <div class="nav-section">Custom Builder</div>
+      <div class="nav-item" onclick="showPage('custom-options')">
+        <span class="icon">⚙️</span> Builder Options
+      </div>
+      <div class="nav-section">Leads</div>
+      <div class="nav-item" onclick="showPage('custom-submissions')">
+        <span class="icon">🛠️</span> Website Leads <span class="badge" id="badge-custom">0</span>
+      </div>
+      <div class="nav-item" onclick="showPage('inquiries')">
+        <span class="icon">💬</span> Plan Inquiries <span class="badge" id="badge-inq">0</span>
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="logout-btn" onclick="doLogout()">⎋ Sign Out</button>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <!-- Dashboard -->
+    <div id="page-dashboard" class="page active">
+      <div class="page-header">
+        <div><h2>Dashboard</h2><p>Welcome back! Here's your overview.</p></div>
+      </div>
+      <div class="stats-grid" id="stats-grid">
+        <div class="stat-card"><div class="stat-label">Total Packages</div><div class="stat-val" id="s-packages">—</div></div>
+        <div class="stat-card"><div class="stat-label">Categories</div><div class="stat-val" id="s-tabs">—</div></div>
+        <div class="stat-card"><div class="stat-label">Website Leads</div><div class="stat-val" id="s-custom">—</div></div>
+        <div class="stat-card"><div class="stat-label">Plan Inquiries</div><div class="stat-val" id="s-inq">—</div></div>
+        <div class="stat-card"><div class="stat-label">New Leads</div><div class="stat-val" id="s-new">—</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title">📋 Recent Website Leads</div>
+        <div class="table-wrap"><table id="dash-custom-table">
+          <thead><tr><th>Name</th><th>Email</th><th>Total</th><th>Status</th><th>Date</th></tr></thead>
+          <tbody></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div id="page-tabs" class="page">
+      <div class="page-header">
+        <div><h2>Categories / Tabs</h2><p>Manage package category tabs</p></div>
+        <button class="btn btn-primary" onclick="openTabModal()">+ Add Category</button>
+      </div>
+      <div class="card">
+        <div class="table-wrap"><table id="tabs-table">
+          <thead><tr><th>Name</th><th>Order</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- Packages -->
+    <div id="page-packages" class="page">
+      <div class="page-header">
+        <div><h2>Packages</h2><p>Create and manage service packages</p></div>
+        <button class="btn btn-primary" onclick="openPkgModal()">+ New Package</button>
+      </div>
+      <div class="card">
+        <div class="table-wrap"><table id="pkg-table">
+          <thead><tr><th>Title</th><th>Category</th><th>Price</th><th>Popular</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- Portfolio -->
+    <div id="page-portfolio" class="page">
+      <div class="page-header">
+        <div><h2>Portfolio Projects</h2><p>Create and manage portfolio cards shown on the Works page</p></div>
+        <button class="btn btn-primary" onclick="openPortfolioModal()">+ New Project</button>
+      </div>
+      <div class="card">
+        <div class="table-wrap"><table id="portfolio-table">
+          <thead><tr><th>Title</th><th>Category</th><th>Tags</th><th>Tech</th><th>Year</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody></tbody>
+        </table></div>
+      </div>
+    </div>
+
+     <!-- Blogs -->
+    <div id="page-blogs" class="page">
+    <div class="page-header">
+        <div>
+            <h2>Blogs</h2>
+            <p>Create and manage blogs</p>
+        </div>
+
+        <button class="btn btn-primary" onclick="openBlogModal()">
+            + New Blog
+        </button>
+    </div>
+
+    <div class="card">
+        <div class="table-wrap">
+            <table id="blog-table">
+
+                <thead>
+                    <tr>
+                        <th>Image</th>
+                        <th>Title</th>
+                        <th>Category</th>
+                        <th>Author</th>
+                        <th>Date</th>
+                        <th>Featured</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody></tbody>
+
+            </table>
+        </div>
+    </div>
+</div>
+
+    <!-- Case Studies -->
+    <div id="page-case-studies" class="page">
+      <div class="page-header">
+        <div><h2>Case Studies</h2><p>Create and manage detailed case studies shown on the Case Study page</p></div>
+        <button class="btn btn-primary" onclick="openCaseModal()">+ New Case Study</button>
+      </div>
+      <div class="card">
+        <div class="table-wrap"><table id="case-table">
+          <thead><tr><th>Title</th><th>Category</th><th>Client</th><th>Featured</th><th>Year</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- Service Pages -->
+    <div id="page-service-pages" class="page">
+      <div class="page-header">
+        <div><h2>Service Pages</h2><p>Edit Industrial Training and Hire Full Time Developers page content</p></div>
+        <button class="btn btn-primary" onclick="openServicePageModal()">+ New Page</button>
+      </div>
+      <div class="card">
+        <div class="table-wrap"><table id="service-pages-table">
+          <thead><tr><th>Title</th><th>Slug</th><th>Status</th><th>Updated</th><th>Actions</th></tr></thead>
+          <tbody></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- Custom Options -->
+    <div id="page-custom-options" class="page">
+      <div class="page-header">
+        <div><h2>Custom Builder Options</h2><p>Manage the drag-and-drop builder items</p></div>
+        <button class="btn btn-primary" onclick="openOptModal()">+ Add Option</button>
+      </div>
+      <div class="tab-bar">
+        <button class="tab-btn active" onclick="filterOpts('websiteType',this)">Website Type</button>
+        <button class="tab-btn" onclick="filterOpts('pages',this)">Pages</button>
+        <button class="tab-btn" onclick="filterOpts('design',this)">Design</button>
+        <button class="tab-btn" onclick="filterOpts('features',this)">Features</button>
+      </div>
+      <div class="card">
+        <div class="table-wrap"><table id="opt-table">
+          <thead><tr><th>Title</th><th>Category</th><th>Description</th><th>Price</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- Custom Submissions -->
+    <div id="page-custom-submissions" class="page">
+      <div class="page-header">
+        <div><h2>Website Leads</h2><p>View contact, quote, expert, and custom package submissions</p></div>
+      </div>
+      <div class="tab-bar">
+        <button class="tab-btn active" onclick="filterSubs('',this)">All</button>
+        <button class="tab-btn" onclick="filterSubs('new',this)">New</button>
+        <button class="tab-btn" onclick="filterSubs('viewed',this)">Viewed</button>
+        <button class="tab-btn" onclick="filterSubs('contacted',this)">Contacted</button>
+        <button class="tab-btn" onclick="filterSubs('closed',this)">Closed</button>
+      </div>
+      <div class="card">
+        <div class="table-wrap"><table id="subs-table">
+          <thead><tr><th>Name</th><th>Source</th><th>Email</th><th>Phone</th><th>Package</th><th>Total</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+          <tbody></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- Inquiries -->
+    <div id="page-inquiries" class="page">
+      <div class="page-header">
+        <div><h2>Plan Inquiries</h2><p>View all "Choose Plan" form submissions</p></div>
+      </div>
+      <div class="card">
+        <div class="table-wrap"><table id="inq-table">
+          <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Package ID</th><th>Message</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+          <tbody></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- ─── Modals ─────────────────────────────────────────────────────────────── -->
+
+<!-- Tab Modal -->
+<div id="tab-modal" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="tab-modal-title">Add Category</h3>
+      <button class="modal-close" onclick="closeModal('tab-modal')">✕</button>
+    </div>
+    <input type="hidden" id="tab-id">
+    <div class="form-group"><label>Name</label><input id="tab-name" placeholder="e.g. website development"></div>
+    <div class="form-group"><label>Sort Order</label><input id="tab-sort" type="number" value="0"></div>
+    <div class="form-group">
+      <label>Active</label>
+      <select id="tab-active"><option value="1">Yes</option><option value="0">No</option></select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('tab-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveTab()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Package Modal -->
+<div id="pkg-modal" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="pkg-modal-title">New Package</h3>
+      <button class="modal-close" onclick="closeModal('pkg-modal')">✕</button>
+    </div>
+    <input type="hidden" id="pkg-id">
+    <div class="form-group"><label>Title</label><input id="pkg-title" placeholder="e.g. Website Pro"></div>
+    <div class="form-group"><label>Category</label><select id="pkg-category"></select></div>
+    <div class="form-group"><label>Description</label><textarea id="pkg-desc" rows="2" placeholder="Short description..."></textarea></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+      <div class="form-group"><label>Symbol</label><input id="pkg-symbol" value="$"></div>
+      <div class="form-group"><label>Price</label><input id="pkg-price" type="number" value="0"></div>
+      <div class="form-group"><label>Price Desc</label><input id="pkg-pricedesc" value="/project"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+      <div class="form-group"><label>Button Text</label><input id="pkg-btn" value="Choose Plan"></div>
+      <div class="form-group"><label>Sort Order</label><input id="pkg-sort" type="number" value="0"></div>
+      <div class="form-group"><label>Popular</label><select id="pkg-popular"><option value="0">No</option><option value="1">Yes ⭐</option></select></div>
+    </div>
+    <div class="form-group">
+      <label>Features / Events</label>
+      <div class="features-list" id="features-list"></div>
+      <button class="add-feature-btn" onclick="addFeatureRow()">+ Add Feature</button>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('pkg-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="savePkg()">Save Package</button>
+    </div>
+  </div>
+</div>
+
+<!-- Portfolio Modal -->
+<div id="portfolio-modal" class="modal-overlay">
+  <div class="modal" style="width:760px">
+    <div class="modal-header">
+      <h3 id="portfolio-modal-title">New Portfolio Project</h3>
+      <button class="modal-close" onclick="closeModal('portfolio-modal')">x</button>
+    </div>
+    <input type="hidden" id="portfolio-id">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="form-group"><label>Title</label><input id="portfolio-title" placeholder="Dr. Treat"></div>
+      <div class="form-group"><label>Category Label</label><input id="portfolio-category" placeholder="Healthcare / React.js"></div>
+    </div>
+    <div class="form-group"><label>Image URL</label><input id="portfolio-image" placeholder="https://..."></div>
+    <div class="form-group"><label>Description</label><textarea id="portfolio-desc" rows="3" placeholder="Short portfolio card description..."></textarea></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="form-group">
+        <label>Filter Tags</label>
+        <select id="portfolio-tags" multiple size="7">
+          <option value="UI & UX">UI & UX</option>
+          <option value="Shopify">Shopify</option>
+          <option value="WordPress">WordPress</option>
+          <option value="Front End Dev">Front End Dev</option>
+          <option value="Development">Development</option>
+          <option value="PHP">PHP</option>
+          <option value="Laravel">Laravel</option>
+          <option value="Node.js">Node.js</option>
+          <option value="AI">AI</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Tech Stack</label>
+        <select id="portfolio-tech" multiple size="7">
+          <option value="React">React</option>
+          <option value="Next.js">Next.js</option>
+          <option value="Node.js">Node.js</option>
+          <option value="Laravel">Laravel</option>
+          <option value="PHP">PHP</option>
+          <option value="WordPress">WordPress</option>
+          <option value="Shopify">Shopify</option>
+          <option value="Tailwind">Tailwind</option>
+          <option value="MySQL">MySQL</option>
+          <option value="MongoDB">MongoDB</option>
+          <option value="AWS">AWS</option>
+          <option value="Figma">Figma</option>
+        </select>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+      <div class="form-group"><label>Year</label><input id="portfolio-year" placeholder="2024"></div>
+      <div class="form-group"><label>Sort Order</label><input id="portfolio-sort" type="number" value="0"></div>
+      <div class="form-group"><label>Active</label><select id="portfolio-active"><option value="1">Yes</option><option value="0">No</option></select></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('portfolio-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="savePortfolio()">Save Project</button>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- ================= BLOG MODAL ================= -->
+
+<div id="blog-modal" class="modal-overlay">
+
+    <div class="modal" style="width:850px">
+
+        <div class="modal-header">
+            <h3 id="blog-modal-title">New Blog</h3>
+            <button class="modal-close" onclick="closeModal('blog-modal')">×</button>
+        </div>
+
+        <input type="hidden" id="blog-id">
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+
+            <div class="form-group">
+                <label>Title</label>
+                <input id="blog-title">
+            </div>
+
+            <div class="form-group">
+                <label>Slug</label>
+                <input id="blog-slug">
+            </div>
+
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+
+            <div class="form-group">
+                <label>Category</label>
+                <input id="blog-category">
+            </div>
+
+            <div class="form-group">
+                <label>Author</label>
+                <input id="blog-author" value="Webstep Team">
+            </div>
+
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+
+            <div class="form-group">
+                <label>Author Avatar URL</label>
+                <input id="blog-author-avatar" placeholder="https://...">
+            </div>
+
+            <div class="form-group">
+                <label>Author Bio</label>
+                <input id="blog-author-bio" placeholder="Senior content strategist at Webstep Solutions...">
+            </div>
+
+        </div>
+
+        <div class="form-group">
+            <label>Image URL</label>
+            <input id="blog-image" placeholder="https://...">
+        </div>
+
+        <div class="form-group">
+            <label>Excerpt</label>
+            <textarea id="blog-excerpt" rows="3"></textarea>
+        </div>
+
+       <div class="form-group">
+    <label>Content</label>
+    <div id="blog-content-editor" style="background:var(--slate-50); border-radius:10px; min-height:220px;"></div>
+    <textarea id="blog-content" style="display:none;"></textarea>
+</div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+
+            <div class="form-group">
+                <label>Published Date</label>
+                <input type="date" id="blog-published-date">
+            </div>
+
+            <div class="form-group">
+                <label>Read Time</label>
+                <input id="blog-read-time" placeholder="5 min read">
+            </div>
+
+            <div class="form-group">
+                <label>Views</label>
+                <input id="blog-views" type="number" placeholder="0">
+            </div>
+
+            <div class="form-group">
+                <label>Likes</label>
+                <input id="blog-likes" type="number" placeholder="0">
+            </div>
+
+        </div>
+
+        <div class="form-group">
+            <label>Tags (comma separated)</label>
+            <input id="blog-tags" placeholder="React, PHP, AI, Web Design">
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+
+            <div class="form-group">
+                <label>Featured</label>
+                <select id="blog-featured">
+                    <option value="0">No</option>
+                    <option value="1">Yes</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Active</label>
+                <select id="blog-active">
+                    <option value="1">Yes</option>
+                    <option value="0">No</option>
+                </select>
+            </div>
+
+        </div>
+
+        <div class="form-group">
+            <label>SEO Title</label>
+            <input id="blog-seo-title">
+        </div>
+
+        <div class="form-group">
+            <label>SEO Description</label>
+            <textarea id="blog-seo-description" rows="3"></textarea>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 2fr;gap:12px">
+
+            <div class="form-group">
+                <label>Sort Order</label>
+                <input id="blog-sort" type="number" value="0">
+            </div>
+
+        </div>
+
+        <div class="modal-footer">
+
+            <button class="btn btn-secondary"
+                onclick="closeModal('blog-modal')">
+                Cancel
+            </button>
+
+            <button class="btn btn-primary"
+                onclick="saveBlog()">
+                Save Blog
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- Case Study Modal -->
+<div id="case-modal" class="modal-overlay">
+  <div class="modal" style="width:920px">
+    <div class="modal-header">
+      <h3 id="case-modal-title">New Case Study</h3>
+      <button class="modal-close" onclick="closeModal('case-modal')">x</button>
+    </div>
+    <input type="hidden" id="case-id">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="form-group"><label>Title</label><input id="case-title" placeholder="Dr. Treat"></div>
+      <div class="form-group"><label>Slug</label><input id="case-slug" placeholder="dr-treat"></div>
+    </div>
+    <div class="form-group"><label>Tagline</label><input id="case-tagline" placeholder="Redesigning patient care from the ground up"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+      <div class="form-group"><label>Category</label><input id="case-category" placeholder="Healthcare"></div>
+      <div class="form-group"><label>Client</label><input id="case-client" placeholder="Dr. Treat Inc."></div>
+      <div class="form-group"><label>Logo Text</label><input id="case-logo" placeholder="DT"></div>
+    </div>
+    <div class="form-group"><label>Image URL</label><input id="case-image" placeholder="https://..."></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+      <div class="form-group"><label>Duration</label><input id="case-duration" placeholder="6 months"></div>
+      <div class="form-group"><label>Year</label><input id="case-year" placeholder="2024"></div>
+      <div class="form-group"><label>Featured</label><select id="case-featured"><option value="0">No</option><option value="1">Yes</option></select></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="form-group">
+        <label>Tags</label>
+        <select id="case-tags" multiple size="7">
+          <option value="Healthcare">Healthcare</option>
+          <option value="E-Commerce">E-Commerce</option>
+          <option value="SaaS">SaaS</option>
+          <option value="Education">Education</option>
+          <option value="Fintech">Fintech</option>
+          <option value="Non-Profit">Non-Profit</option>
+          <option value="Enterprise">Enterprise</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Tech Stack</label>
+        <select id="case-tech" multiple size="7">
+          <option value="React">React</option>
+          <option value="Next.js">Next.js</option>
+          <option value="Node.js">Node.js</option>
+          <option value="Laravel">Laravel</option>
+          <option value="PHP">PHP</option>
+          <option value="MySQL">MySQL</option>
+          <option value="PostgreSQL">PostgreSQL</option>
+          <option value="MongoDB">MongoDB</option>
+          <option value="AWS">AWS</option>
+          <option value="Redis">Redis</option>
+          <option value="Stripe">Stripe</option>
+          <option value="Figma">Figma</option>
+          <option value="WebRTC">WebRTC</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group"><label>Challenge</label><textarea id="case-challenge" rows="3"></textarea></div>
+    <div class="form-group"><label>Solution</label><textarea id="case-solution" rows="3"></textarea></div>
+    <div class="form-group"><label>Result</label><textarea id="case-result" rows="3"></textarea></div>
+    <div class="form-group"><label>Metrics (one per line: Label: Value)</label><textarea id="case-metrics" rows="3" placeholder="Drop-off Reduced: 72%&#10;Booking Speed: 3x"></textarea></div>
+    <div class="form-group"><label>Deliverables (comma separated)</label><textarea id="case-deliverables" rows="2" placeholder="Custom booking engine, Admin dashboard"></textarea></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="form-group"><label>Testimonial Quote</label><textarea id="case-testimonial-quote" rows="3"></textarea></div>
+      <div>
+        <div class="form-group"><label>Testimonial Author</label><input id="case-testimonial-author"></div>
+        <div class="form-group"><label>Testimonial Role</label><input id="case-testimonial-role"></div>
+      </div>
+    </div>
+    <div class="form-group"><label>Testimonial Avatar URL</label><input id="case-testimonial-avatar" placeholder="https://..."></div>
+    <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:12px">
+      <div class="form-group"><label>Color</label><input id="case-color" value="#6366f1"></div>
+      <div class="form-group"><label>Accent</label><input id="case-accent" value="#e0e7ff"></div>
+      <div class="form-group"><label>Light Text</label><input id="case-light-text" value="#4338ca"></div>
+      <div class="form-group"><label>Dark BG</label><input id="case-dark-bg" value="#4338ca"></div>
+      <div class="form-group"><label>Sort</label><input id="case-sort" type="number" value="0"></div>
+      <div class="form-group"><label>Active</label><select id="case-active"><option value="1">Yes</option><option value="0">No</option></select></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('case-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveCaseStudy()">Save Case Study</button>
+    </div>
+  </div>
+</div>
+
+<!-- Service Page Modal -->
+<div id="service-page-modal" class="modal-overlay">
+  <div class="modal" style="width:940px">
+    <div class="modal-header">
+      <h3 id="service-page-modal-title">Edit Service Page</h3>
+      <button class="modal-close" onclick="closeModal('service-page-modal')">x</button>
+    </div>
+    <input type="hidden" id="service-page-id">
+    <div style="display:grid;grid-template-columns:1fr 1fr 120px 120px;gap:12px">
+      <div class="form-group"><label>Title</label><input id="service-page-title" placeholder="Industrial Training"></div>
+      <div class="form-group"><label>Slug</label><input id="service-page-slug" placeholder="industrial-training"></div>
+      <div class="form-group"><label>Sort</label><input id="service-page-sort" type="number" value="0"></div>
+      <div class="form-group"><label>Active</label><select id="service-page-active"><option value="1">Yes</option><option value="0">No</option></select></div>
+    </div>
+    <div class="form-group">
+      <label>Page Content JSON</label>
+      <textarea id="service-page-content" rows="20" style="font-family:Consolas,monospace;font-size:.82rem;line-height:1.5" placeholder='{"hero":{},"sections":[]}'></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('service-page-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveServicePage()">Save Page</button>
+    </div>
+  </div>
+</div>
+
+<!-- Custom Option Modal -->
+<div id="opt-modal" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="opt-modal-title">Add Builder Option</h3>
+      <button class="modal-close" onclick="closeModal('opt-modal')">✕</button>
+    </div>
+    <input type="hidden" id="opt-id">
+    <div class="form-group">
+      <label>Category</label>
+      <select id="opt-category">
+        <option value="websiteType">Website Type</option>
+        <option value="pages">Pages</option>
+        <option value="design">Design</option>
+        <option value="features">Features</option>
+      </select>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="form-group"><label>Option ID (slug)</label><input id="opt-oid" placeholder="e.g. ecommerce"></div>
+      <div class="form-group"><label>Title</label><input id="opt-title" placeholder="E-Commerce"></div>
+    </div>
+    <div class="form-group"><label>Description (optional)</label><input id="opt-desc" placeholder="Short label under title"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+      <div class="form-group"><label>Icon Name</label><input id="opt-icon" placeholder="FaShoppingCart"></div>
+      <div class="form-group"><label>Price ($)</label><input id="opt-price" type="number" value="0"></div>
+      <div class="form-group"><label>Sort Order</label><input id="opt-sort" type="number" value="0"></div>
+    </div>
+    <div class="form-group">
+      <label>Active</label>
+      <select id="opt-active"><option value="1">Yes</option><option value="0">No</option></select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('opt-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveOpt()">Save Option</button>
+    </div>
+  </div>
+</div>
+
+<!-- Submission Detail Modal -->
+<div id="sub-detail-modal" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Submission Detail</h3>
+      <button class="modal-close" onclick="closeModal('sub-detail-modal')">✕</button>
+    </div>
+    <div id="sub-detail-body"></div>
+    <div class="modal-footer">
+      <select id="sub-status-sel" style="padding:8px 12px;border-radius:8px;border:1.5px solid var(--slate-200);">
+        <option value="new">New</option>
+        <option value="viewed">Viewed</option>
+        <option value="contacted">Contacted</option>
+        <option value="closed">Closed</option>
+      </select>
+      <button class="btn btn-primary" onclick="updateSubStatus()">Update Status</button>
+      <button class="btn btn-secondary" onclick="closeModal('sub-detail-modal')">Close</button>
+    </div>
+  </div>
+</div>
+
+  </main>
+</div>
+
+
+<!-- Toast -->
+<div id="toast" class="toast"></div>
+
+<script>
+// ─────────────────────────────────────────────────────────────────────────────
+const BASE = 'https://webstepdev.com/demo/webstepphp'; // CHANGE TO YOUR LOCAL SERVER PATH
+
+let currentPage    = 'dashboard';
+let allOpts        = [];
+let currentOptCat  = 'websiteType';
+let allSubs        = [];
+let currentSubFilter = '';
+let currentSubId   = null;
+let currentSubType = 'custom';
+let allPortfolio   = [];
+let allCases       = [];
+let allTabs        = [];
+let allPkgs        = [];
+// ─── Quill Editor ───────────────────────────────────────────────────────────
+let quillEditor = null;
+
+function initQuillEditor() {
+  if (quillEditor) return; // already initialized, don't re-create
+  quillEditor = new Quill('#blog-content-editor', {
+    theme: 'snow',
+    placeholder: 'Write your blog content here...',
+    modules: {
+      toolbar: [
+        [{ header: [2, 3, false] }],
+        ['bold', 'italic', 'underline'],
+        ['blockquote'],
+        [{ list: 'ordered' }, { list: 'bullet' }],
+        ['link'],
+        ['clean']
+      ]
+    }
+  });
+}
+
+
+
+// ─── Fetch helper ─────────────────────────────────────────────────────────────
+async function api(path, method = 'GET', body = null) {
+  const opts = { method, credentials: 'include', headers: { 'Content-Type': 'application/json' } };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(BASE + path, opts);
+  return res.json();
+}
+
+function esc(value = '') {
+  return String(value ?? '').replace(/[&<>"']/g, ch => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[ch]));
+}
+
+function csvToArray(value = '') {
+  return String(value || '').split(',').map(v => v.trim()).filter(Boolean);
+}
+
+function getMultiSelectValues(id) {
+  return [...document.getElementById(id).selectedOptions].map(option => option.value);
+}
+
+function setMultiSelectValues(id, values = []) {
+  const select = document.getElementById(id);
+  const normalizedValues = values.map(value => String(value));
+  normalizedValues.forEach(value => {
+    if (![...select.options].some(option => option.value === value)) {
+      select.add(new Option(value, value));
+    }
+  });
+  [...select.options].forEach(option => {
+    option.selected = normalizedValues.includes(option.value);
+  });
+}
+
+function linesToMetrics(value = '') {
+  return String(value || '').split('\n').map(line => {
+    const [label, ...rest] = line.split(':');
+    return { label: (label || '').trim(), val: rest.join(':').trim() };
+  }).filter(m => m.label && m.val);
+}
+
+function actionJson(value) {
+  return encodeURIComponent(JSON.stringify(value)).replace(/'/g, '%27');
+}
+
+function readActionJson(value) {
+  return JSON.parse(decodeURIComponent(value));
+}
+
+// ─── Toast ───────────────────────────────────────────────────────────────────
+function toast(msg, type = 'success') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = `toast ${type} show`;
+  setTimeout(() => el.className = 'toast', 2800);
+}
+
+// ─── Auth ─────────────────────────────────────────────────────────────────────
+async function doLogin() {
+  const username = document.getElementById('login-user').value;
+  const password = document.getElementById('login-pass').value;
+  const r = await api('/admin/auth.php?action=login', 'POST', { username, password });
+  if (r.success) {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    initApp();
+  } else {
+    const err = document.getElementById('login-err');
+    err.textContent = r.error || 'Login failed';
+    err.style.display = 'block';
+  }
+}
+
+async function doLogout() {
+  await api('/admin/auth.php?action=logout');
+  location.reload();
+}
+
+document.getElementById('login-pass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+// ─── Navigation ───────────────────────────────────────────────────────────────
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  event?.currentTarget?.classList.add('active');
+  currentPage = name;
+  loadPage(name);
+}
+
+function loadPage(name) {
+  const loaders = {
+    dashboard:          loadDashboard,
+    tabs:               loadTabs,
+    packages:           loadPackages,
+    portfolio:          loadPortfolio,
+    blogs:              loadBlogs,
+    'case-studies':     loadCaseStudies,
+    'service-pages':    loadServicePages,
+    'custom-options':   loadCustomOptions,
+    'custom-submissions': () => loadSubs('custom', currentSubFilter),
+    inquiries:          loadInquiries,
+  };
+  loaders[name]?.();
+}
+
+// ─── Dashboard ────────────────────────────────────────────────────────────────
+async function loadDashboard() {
+  const [pkgs, tabs, subs, inqs] = await Promise.all([
+    api('/admin/packages.php'), api('/admin/tabs.php'),
+    api('/admin/submissions.php?type=custom'), api('/admin/submissions.php?type=inquiry'),
+  ]);
+  const newCount = (subs.data||[]).filter(s=>s.status==='new').length + (inqs.data||[]).filter(s=>s.status==='new').length;
+  document.getElementById('s-packages').textContent = (pkgs.data||[]).length;
+  document.getElementById('s-tabs').textContent     = (tabs.data||[]).length;
+  document.getElementById('s-custom').textContent   = (subs.data||[]).length;
+  document.getElementById('s-inq').textContent      = (inqs.data||[]).length;
+  document.getElementById('s-new').textContent      = newCount;
+  document.getElementById('badge-custom').textContent = (subs.data||[]).filter(s=>s.status==='new').length;
+  document.getElementById('badge-inq').textContent    = (inqs.data||[]).filter(s=>s.status==='new').length;
+
+  const tbody = document.querySelector('#dash-custom-table tbody');
+  tbody.innerHTML = (subs.data||[]).slice(0,8).map(s => `
+    <tr>
+      <td><strong>${esc(s.name)}</strong></td>
+      <td>${esc(s.email)}</td>
+      <td><strong>$${esc(s.estimated_total)}</strong></td>
+      <td><span class="tag tag-${esc(s.status)}">${esc(s.status)}</span></td>
+      <td>${new Date(s.created_at).toLocaleDateString()}</td>
+    </tr>
+  `).join('') || '<tr><td colspan="5" style="text-align:center;color:var(--slate-400);padding:20px;">No submissions yet</td></tr>';
+}
+
+// ─── Tabs ─────────────────────────────────────────────────────────────────────
+async function loadTabs() {
+  const r = await api('/admin/tabs.php');
+  allTabs = r.data || [];
+  const tbody = document.querySelector('#tabs-table tbody');
+  tbody.innerHTML = allTabs.map(t => `
+    <tr>
+      <td><strong>${esc(t.name)}</strong></td>
+      <td>${esc(t.sort_order)}</td>
+      <td><span class="tag ${t.is_active ? 'tag-active' : 'tag-inactive'}">${t.is_active ? 'Active' : 'Inactive'}</span></td>
+      <td style="display:flex;gap:6px;">
+        <button class="btn btn-sm btn-secondary" onclick="editTab('${actionJson(t)}')">Edit</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteTab(${t.id})">Delete</button>
+      </td>
+    </tr>
+  `).join('') || '<tr><td colspan="4" style="text-align:center;color:var(--slate-400);padding:20px;">No categories yet</td></tr>';
+}
+
+function openTabModal(data = null) {
+  document.getElementById('tab-id').value    = data?.id || '';
+  document.getElementById('tab-name').value  = data?.name || '';
+  document.getElementById('tab-sort').value  = data?.sort_order || 0;
+  document.getElementById('tab-active').value= data?.is_active !== undefined ? data.is_active : 1;
+  document.getElementById('tab-modal-title').textContent = data ? 'Edit Category' : 'Add Category';
+  document.getElementById('tab-modal').classList.add('open');
+}
+function editTab(encoded) { openTabModal(readActionJson(encoded)); }
+
+async function saveTab() {
+  const id   = document.getElementById('tab-id').value;
+  const body = {
+    name: document.getElementById('tab-name').value,
+    sort_order: +document.getElementById('tab-sort').value,
+    is_active: +document.getElementById('tab-active').value,
+  };
+  const r = id
+    ? await api('/admin/tabs.php?id=' + id, 'PUT', body)
+    : await api('/admin/tabs.php', 'POST', body);
+  if (r.success) { toast(r.message); closeModal('tab-modal'); loadTabs(); }
+  else toast(r.error, 'error');
+}
+
+async function deleteTab(id) {
+  if (!confirm('Delete this category?')) return;
+  const r = await api('/admin/tabs.php?id=' + id, 'DELETE');
+  if (r.success) { toast('Category deleted'); loadTabs(); }
+  else toast(r.error, 'error');
+}
+
+// ─── Packages ─────────────────────────────────────────────────────────────────
+async function loadPackages() {
+  const r = await api('/admin/packages.php');
+  allPkgs = r.data || [];
+  const tbody = document.querySelector('#pkg-table tbody');
+  tbody.innerHTML = allPkgs.map(p => `
+  <tr>
+    <td><strong>${esc(p.title)}</strong></td>
+    <td><span class="tag" style="background:#ede9fe;color:#7c3aed;">${esc(p.category_name)}</span></td>
+    <td>${esc(p.symbol)}${esc(p.price)} <small style="color:var(--slate-400)">${esc(p.price_desc)}</small></td>
+    <td>${p.isPopular ? '<span class="tag tag-popular">⭐ Popular</span>' : '—'}</td>
+    <td><span class="tag ${p.is_active ? 'tag-active' : 'tag-inactive'}">${p.is_active ? 'Active' : 'Hidden'}</span></td>
+    <td style="display:flex;gap:6px;">
+      <button class="btn btn-sm btn-secondary" onclick="editPkg('${actionJson(p)}')">Edit</button>
+      <button class="btn btn-sm btn-danger" onclick="deletePkg(${p.id})">Delete</button>
+    </td>
+  </tr>
+`).join('') || '<tr><td colspan="6" style="text-align:center;color:var(--slate-400);padding:20px;">No packages yet</td></tr>';
+}
+
+async function openPkgModal(data = null) {
+  const tabs = await api('/admin/tabs.php');
+  const sel = document.getElementById('pkg-category');
+  sel.innerHTML = (tabs.data||[]).map(t => `<option value="${t.id}">${esc(t.name)}</option>`).join('');
+
+  document.getElementById('pkg-id').value       = data?.id || '';
+  document.getElementById('pkg-title').value    = data?.title || '';
+  document.getElementById('pkg-desc').value     = data?.description || '';
+  document.getElementById('pkg-symbol').value   = data?.symbol || '$';
+  document.getElementById('pkg-price').value    = data?.price || 0;
+  document.getElementById('pkg-pricedesc').value= data?.price_desc || '/project';
+  document.getElementById('pkg-btn').value      = data?.btn_text || 'Choose Plan';
+  document.getElementById('pkg-sort').value     = data?.sort_order || 0;
+  document.getElementById('pkg-popular').value  = data?.isPopular ? 1 : 0;
+  if (data?.category_id) sel.value = data.category_id;
+
+  const fl = document.getElementById('features-list');
+  fl.innerHTML = '';
+  (data?.features || ['']).forEach(f => addFeatureRow(f));
+  if (!data?.features?.length) addFeatureRow();
+
+  document.getElementById('pkg-modal-title').textContent = data ? 'Edit Package' : 'New Package';
+  document.getElementById('pkg-modal').classList.add('open');
+}
+
+function editPkg(encoded) { openPkgModal(readActionJson(encoded)); }
+
+function addFeatureRow(val = '') {
+  const fl = document.getElementById('features-list');
+  const div = document.createElement('div');
+  div.className = 'feature-item';
+  div.innerHTML = `
+    <input class="feature-input" type="text" placeholder="Feature text..." value="${esc(val)}">
+    <button class="btn btn-sm btn-danger" onclick="this.parentElement.remove()">✕</button>
+  `;
+  fl.appendChild(div);
+}
+
+async function savePkg() {
+  const id = document.getElementById('pkg-id').value;
+  const features = [...document.querySelectorAll('.feature-input')]
+    .map(i => i.value.trim()).filter(Boolean);
+
+  const body = {
+  title: document.getElementById('pkg-title').value,
+  category_id: +document.getElementById('pkg-category').value,
+  description: document.getElementById('pkg-desc').value,
+  symbol: document.getElementById('pkg-symbol').value,
+  price: +document.getElementById('pkg-price').value,
+  price_desc: document.getElementById('pkg-pricedesc').value,
+  btn_text: document.getElementById('pkg-btn').value,
+  sort_order: +document.getElementById('pkg-sort').value,
+  is_popular: +document.getElementById('pkg-popular').value,
+  features,
+};
+
+  const r = id
+    ? await api('/admin/packages.php?id=' + id, 'PUT', body)
+    : await api('/admin/packages.php', 'POST', body);
+
+  if (r.success) { toast(r.message); closeModal('pkg-modal'); loadPackages(); }
+  else toast(r.error, 'error');
+}
+
+async function deletePkg(id) {
+  if (!confirm('Delete this package?')) return;
+  const r = await api('/admin/packages.php?id=' + id, 'DELETE');
+  if (r.success) { toast('Package deleted'); loadPackages(); }
+  else toast(r.error, 'error');
+}
+
+// ─── Custom Options ───────────────────────────────────────────────────────────
+// Portfolio
+async function loadPortfolio() {
+  const r = await api('/admin/portfolio.php');
+  allPortfolio = r.data || [];
+  const tbody = document.querySelector('#portfolio-table tbody');
+  tbody.innerHTML = allPortfolio.map(p => `
+    <tr>
+      <td><strong>${esc(p.title)}</strong></td>
+      <td><span class="tag" style="background:#e0f2fe;color:#0369a1;">${esc(p.category)}</span></td>
+      <td style="max-width:220px">${(p.tags||[]).map(t => `<span class="chip">${esc(t)}</span>`).join(' ') || '-'}</td>
+      <td style="max-width:220px">${(p.tech||[]).map(t => `<span class="chip" style="background:#ecfeff;color:#0e7490;">${esc(t)}</span>`).join(' ') || '-'}</td>
+      <td>${esc(p.year || '-')}</td>
+      <td><span class="tag ${+p.is_active ? 'tag-active' : 'tag-inactive'}">${+p.is_active ? 'Active' : 'Hidden'}</span></td>
+      <td style="display:flex;gap:6px;">
+        <button class="btn btn-sm btn-secondary" onclick="editPortfolio('${actionJson(p)}')">Edit</button>
+        <button class="btn btn-sm btn-danger" onclick="deletePortfolio(${p.id})">Delete</button>
+      </td>
+    </tr>
+  `).join('') || '<tr><td colspan="7" style="text-align:center;color:var(--slate-400);padding:20px;">No portfolio projects yet</td></tr>';
+}
+
+function openPortfolioModal(data = null) {
+  document.getElementById('portfolio-id').value = data?.id || '';
+  document.getElementById('portfolio-title').value = data?.title || '';
+  document.getElementById('portfolio-category').value = data?.category || '';
+  document.getElementById('portfolio-image').value = data?.image || '';
+  document.getElementById('portfolio-desc').value = data?.description || '';
+  setMultiSelectValues('portfolio-tags', data?.tags || []);
+  setMultiSelectValues('portfolio-tech', data?.tech || []);
+  document.getElementById('portfolio-year').value = data?.year || new Date().getFullYear();
+  document.getElementById('portfolio-sort').value = data?.sort_order || 0;
+  document.getElementById('portfolio-active').value = data?.is_active !== undefined ? data.is_active : 1;
+  document.getElementById('portfolio-modal-title').textContent = data ? 'Edit Portfolio Project' : 'New Portfolio Project';
+  document.getElementById('portfolio-modal').classList.add('open');
+}
+
+function editPortfolio(encoded) { openPortfolioModal(readActionJson(encoded)); }
+
+async function savePortfolio() {
+  const id = document.getElementById('portfolio-id').value;
+  const body = {
+    title: document.getElementById('portfolio-title').value,
+    category: document.getElementById('portfolio-category').value,
+    image: document.getElementById('portfolio-image').value,
+    description: document.getElementById('portfolio-desc').value,
+    tags: getMultiSelectValues('portfolio-tags'),
+    tech: getMultiSelectValues('portfolio-tech'),
+    year: document.getElementById('portfolio-year').value,
+    sort_order: +document.getElementById('portfolio-sort').value,
+    is_active: +document.getElementById('portfolio-active').value,
+  };
+  const r = id
+    ? await api('/admin/portfolio.php?id=' + id, 'PUT', body)
+    : await api('/admin/portfolio.php', 'POST', body);
+  if (r.success) { toast(r.message); closeModal('portfolio-modal'); loadPortfolio(); }
+  else toast(r.error, 'error');
+}
+
+async function deletePortfolio(id) {
+  if (!confirm('Delete this portfolio project?')) return;
+  const r = await api('/admin/portfolio.php?id=' + id, 'DELETE');
+  if (r.success) { toast('Portfolio project deleted'); loadPortfolio(); }
+  else toast(r.error, 'error');
+}
+
+
+// Blogs
+let allBlogs = [];
+
+async function loadBlogs() {
+
+    const r = await api('/admin/blogs.php');
+
+    allBlogs = r.data || [];
+
+    const tbody = document.querySelector('#blog-table tbody');
+
+    tbody.innerHTML = allBlogs.map(b => `
+
+        <tr>
+
+            <td>
+                <img src="${esc(b.image || '')}"
+                     style="width:70px;height:50px;object-fit:cover;border-radius:8px;">
+            </td>
+
+            <td>
+                <strong>${esc(b.title)}</strong>
+            </td>
+
+            <td>${esc(b.category || '-')}</td>
+
+            <td>${esc(b.author || '-')}</td>
+
+            <td>${esc(b.published_date || '-')}</td>
+
+            <td>
+                <span class="tag ${+b.featured ? 'tag-popular' : ''}">
+                    ${+b.featured ? 'Yes' : 'No'}
+                </span>
+            </td>
+
+            <td>
+                <span class="tag ${+b.is_active ? 'tag-active' : 'tag-inactive'}">
+                    ${+b.is_active ? 'Active' : 'Hidden'}
+                </span>
+            </td>
+
+            <td style="display:flex;gap:6px">
+
+                <button class="btn btn-sm btn-secondary"
+                    onclick="editBlog('${actionJson(b)}')">
+                    Edit
+                </button>
+
+                <button class="btn btn-sm btn-danger"
+                    onclick="deleteBlog(${b.id})">
+                    Delete
+                </button>
+
+            </td>
+
+        </tr>
+
+    `).join('') ||
+
+    `<tr>
+        <td colspan="8" style="text-align:center;padding:20px;">
+            No Blogs Found
+        </td>
+    </tr>`;
+}
+function openBlogModal(data = null) {
+
+    document.getElementById('blog-id').value = data?.id || '';
+
+    document.getElementById('blog-title').value = data?.title || '';
+
+    document.getElementById('blog-slug').value = data?.slug || '';
+
+    document.getElementById('blog-category').value = data?.category || '';
+
+   document.getElementById('blog-author').value = data?.author || '';
+document.getElementById('blog-author-avatar').value = data?.author_avatar || '';
+document.getElementById('blog-author-bio').value = data?.author_bio || '';
+
+    document.getElementById('blog-image').value = data?.image || '';
+
+    document.getElementById('blog-excerpt').value = data?.excerpt || '';
+
+    initQuillEditor();
+quillEditor.root.innerHTML = data?.content || '';
+
+    document.getElementById('blog-published-date').value =
+        data?.published_date || '';
+
+    document.getElementById('blog-read-time').value =
+        data?.read_time || '';
+
+    document.getElementById('blog-views').value =
+        data?.views || 0;
+
+    document.getElementById('blog-likes').value =
+        data?.likes || 0;
+
+    document.getElementById('blog-featured').value =
+        data?.featured || 0;
+
+    document.getElementById('blog-sort').value =
+        data?.sort_order || 0;
+
+    document.getElementById('blog-active').value =
+        data?.is_active ?? 1;
+
+    document.getElementById('blog-seo-title').value =
+        data?.seo_title || '';
+
+    document.getElementById('blog-seo-description').value =
+        data?.seo_description || '';
+
+    document.getElementById('blog-tags').value =
+        (data?.tags || []).join(',');
+
+    document.getElementById('blog-modal-title').innerHTML =
+        data ? 'Edit Blog' : 'New Blog';
+
+    document.getElementById('blog-modal').classList.add('open');
+}
+
+function editBlog(data) {
+    openBlogModal(readActionJson(data));
+}
+
+
+async function saveBlog() {
+
+    const id = document.getElementById('blog-id').value;
+
+    const body = {
+
+        title: document.getElementById('blog-title').value,
+
+        slug: document.getElementById('blog-slug').value,
+
+        category: document.getElementById('blog-category').value,
+
+        author: document.getElementById('blog-author').value,
+
+        author_avatar: document.getElementById('blog-author-avatar').value,
+author_bio: document.getElementById('blog-author-bio').value,
+
+        image: document.getElementById('blog-image').value,
+
+        excerpt: document.getElementById('blog-excerpt').value,
+
+        content: quillEditor.root.innerHTML,
+
+        tags: document.getElementById('blog-tags').value
+            .split(',')
+            .map(t => t.trim())
+            .filter(Boolean),
+
+        published_date: document.getElementById('blog-published-date').value,
+
+        read_time: document.getElementById('blog-read-time').value,
+
+        views: +document.getElementById('blog-views').value,
+
+        likes: +document.getElementById('blog-likes').value,
+
+        featured: +document.getElementById('blog-featured').value,
+
+        sort_order: +document.getElementById('blog-sort').value,
+
+        is_active: +document.getElementById('blog-active').value,
+
+        seo_title: document.getElementById('blog-seo-title').value,
+
+        seo_description: document.getElementById('blog-seo-description').value
+
+    };
+
+    const r = id
+        ? await api('/admin/blogs.php?id=' + id, 'PUT', body)
+        : await api('/admin/blogs.php', 'POST', body);
+
+    if (r.success) {
+
+        toast(r.message);
+
+        closeModal('blog-modal');
+
+        loadBlogs();
+
+    } else {
+
+        toast(r.error, 'error');
+
+    }
+
+}
+
+
+async function deleteBlog(id) {
+
+    if (!confirm('Delete this blog?')) return;
+
+    const r = await api('/admin/blogs.php?id=' + id, 'DELETE');
+
+    if (r.success) {
+
+        toast('Blog deleted');
+
+        loadBlogs();
+
+    } else {
+
+        toast(r.error, 'error');
+
+    }
+
+}
+// Case Studies
+async function loadCaseStudies() {
+  const r = await api('/admin/case-studies.php');
+  allCases = r.data || [];
+  const tbody = document.querySelector('#case-table tbody');
+  tbody.innerHTML = allCases.map(c => `
+    <tr>
+      <td><strong>${esc(c.title)}</strong><br><small style="color:var(--slate-400)">${esc(c.slug)}</small></td>
+      <td><span class="tag" style="background:#ede9fe;color:#7c3aed;">${esc(c.category)}</span></td>
+      <td>${esc(c.client || '-')}</td>
+      <td>${+c.featured ? '<span class="tag tag-popular">Featured</span>' : '-'}</td>
+      <td>${esc(c.year || '-')}</td>
+      <td><span class="tag ${+c.is_active ? 'tag-active' : 'tag-inactive'}">${+c.is_active ? 'Active' : 'Hidden'}</span></td>
+      <td style="display:flex;gap:6px;">
+        <button class="btn btn-sm btn-secondary" onclick="editCaseStudy('${actionJson(c)}')">Edit</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteCaseStudy(${c.id})">Delete</button>
+      </td>
+    </tr>
+  `).join('') || '<tr><td colspan="7" style="text-align:center;color:var(--slate-400);padding:20px;">No case studies yet</td></tr>';
+}
+
+function metricLines(metrics = []) {
+  return metrics.map(m => `${m.label || ''}: ${m.val || m.value || ''}`.trim()).join('\n');
+}
+
+function openCaseModal(data = null) {
+  document.getElementById('case-id').value = data?.id || '';
+  document.getElementById('case-title').value = data?.title || '';
+  document.getElementById('case-slug').value = data?.slug || '';
+  document.getElementById('case-tagline').value = data?.tagline || '';
+  document.getElementById('case-category').value = data?.category || '';
+  document.getElementById('case-client').value = data?.client || '';
+  document.getElementById('case-logo').value = data?.logo || '';
+  document.getElementById('case-image').value = data?.image || '';
+  document.getElementById('case-duration').value = data?.duration || '';
+  document.getElementById('case-year').value = data?.year || new Date().getFullYear();
+  document.getElementById('case-featured').value = data?.featured ? 1 : 0;
+  setMultiSelectValues('case-tags', data?.tags || []);
+  setMultiSelectValues('case-tech', data?.tech || []);
+  document.getElementById('case-challenge').value = data?.challenge || '';
+  document.getElementById('case-solution').value = data?.solution || '';
+  document.getElementById('case-result').value = data?.result || '';
+  document.getElementById('case-metrics').value = metricLines(data?.metrics || []);
+  document.getElementById('case-deliverables').value = (data?.deliverables || []).join(', ');
+  document.getElementById('case-testimonial-quote').value = data?.testimonial_quote || '';
+  document.getElementById('case-testimonial-author').value = data?.testimonial_author || '';
+  document.getElementById('case-testimonial-role').value = data?.testimonial_role || '';
+  document.getElementById('case-testimonial-avatar').value = data?.testimonial_avatar || '';
+  document.getElementById('case-color').value = data?.color || '#6366f1';
+  document.getElementById('case-accent').value = data?.accent || '#e0e7ff';
+  document.getElementById('case-light-text').value = data?.light_text || '#4338ca';
+  document.getElementById('case-dark-bg').value = data?.dark_bg || '#4338ca';
+  document.getElementById('case-sort').value = data?.sort_order || 0;
+  document.getElementById('case-active').value = data?.is_active !== undefined ? data.is_active : 1;
+  document.getElementById('case-modal-title').textContent = data ? 'Edit Case Study' : 'New Case Study';
+  document.getElementById('case-modal').classList.add('open');
+}
+
+function editCaseStudy(encoded) { openCaseModal(readActionJson(encoded)); }
+
+async function saveCaseStudy() {
+  const id = document.getElementById('case-id').value;
+  const body = {
+    title: document.getElementById('case-title').value,
+    slug: document.getElementById('case-slug').value,
+    tagline: document.getElementById('case-tagline').value,
+    category: document.getElementById('case-category').value,
+    client: document.getElementById('case-client').value,
+    logo: document.getElementById('case-logo').value,
+    image: document.getElementById('case-image').value,
+    duration: document.getElementById('case-duration').value,
+    year: document.getElementById('case-year').value,
+    featured: +document.getElementById('case-featured').value,
+    tags: getMultiSelectValues('case-tags'),
+    tech: getMultiSelectValues('case-tech'),
+    challenge: document.getElementById('case-challenge').value,
+    solution: document.getElementById('case-solution').value,
+    result: document.getElementById('case-result').value,
+    metrics: linesToMetrics(document.getElementById('case-metrics').value),
+    deliverables: csvToArray(document.getElementById('case-deliverables').value),
+    testimonial_quote: document.getElementById('case-testimonial-quote').value,
+    testimonial_author: document.getElementById('case-testimonial-author').value,
+    testimonial_role: document.getElementById('case-testimonial-role').value,
+    testimonial_avatar: document.getElementById('case-testimonial-avatar').value,
+    color: document.getElementById('case-color').value,
+    accent: document.getElementById('case-accent').value,
+    light_text: document.getElementById('case-light-text').value,
+    dark_bg: document.getElementById('case-dark-bg').value,
+    sort_order: +document.getElementById('case-sort').value,
+    is_active: +document.getElementById('case-active').value,
+  };
+  const r = id
+    ? await api('/admin/case-studies.php?id=' + id, 'PUT', body)
+    : await api('/admin/case-studies.php', 'POST', body);
+  if (r.success) { toast(r.message); closeModal('case-modal'); loadCaseStudies(); }
+  else toast(r.error, 'error');
+}
+
+async function deleteCaseStudy(id) {
+  if (!confirm('Delete this case study?')) return;
+  const r = await api('/admin/case-studies.php?id=' + id, 'DELETE');
+  if (r.success) { toast('Case study deleted'); loadCaseStudies(); }
+  else toast(r.error, 'error');
+}
+
+async function loadServicePages() {
+  const r = await api('/admin/service-pages.php');
+  const pages = r.data || [];
+  const tbody = document.querySelector('#service-pages-table tbody');
+  tbody.innerHTML = pages.map(p => `
+    <tr>
+      <td><strong>${esc(p.title)}</strong></td>
+      <td><code>${esc(p.slug)}</code></td>
+      <td><span class="tag ${p.is_active ? 'tag-active' : 'tag-inactive'}">${p.is_active ? 'Active' : 'Hidden'}</span></td>
+      <td>${p.updated_at ? new Date(p.updated_at).toLocaleDateString() : '-'}</td>
+      <td style="display:flex;gap:6px;">
+        <button class="btn btn-sm btn-secondary" onclick="editServicePage('${actionJson(p)}')">Edit</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteServicePage(${p.id})">x</button>
+      </td>
+    </tr>
+  `).join('') || '<tr><td colspan="5" style="text-align:center;color:var(--slate-400);padding:20px;">No service pages yet</td></tr>';
+}
+
+function openServicePageModal(data = null) {
+  document.getElementById('service-page-id').value = data?.id || '';
+  document.getElementById('service-page-title').value = data?.title || '';
+  document.getElementById('service-page-slug').value = data?.slug || '';
+  document.getElementById('service-page-sort').value = data?.sort_order || 0;
+  document.getElementById('service-page-active').value = data?.is_active !== undefined ? data.is_active : 1;
+  document.getElementById('service-page-content').value = JSON.stringify(data?.content || {}, null, 2);
+  document.getElementById('service-page-modal-title').textContent = data ? 'Edit Service Page' : 'New Service Page';
+  document.getElementById('service-page-modal').classList.add('open');
+}
+
+function editServicePage(encoded) { openServicePageModal(readActionJson(encoded)); }
+
+async function saveServicePage() {
+  const id = document.getElementById('service-page-id').value;
+  let content;
+  try {
+    content = JSON.parse(document.getElementById('service-page-content').value || '{}');
+  } catch (error) {
+    toast('Content JSON is invalid', 'error');
+    return;
+  }
+  const body = {
+    title: document.getElementById('service-page-title').value,
+    slug: document.getElementById('service-page-slug').value,
+    sort_order: +document.getElementById('service-page-sort').value,
+    is_active: +document.getElementById('service-page-active').value,
+    content,
+  };
+  const r = id
+    ? await api('/admin/service-pages.php?id=' + id, 'PUT', body)
+    : await api('/admin/service-pages.php', 'POST', body);
+  if (r.success) { toast(r.message); closeModal('service-page-modal'); loadServicePages(); }
+  else toast(r.error, 'error');
+}
+
+async function deleteServicePage(id) {
+  if (!confirm('Delete this service page?')) return;
+  const r = await api('/admin/service-pages.php?id=' + id, 'DELETE');
+  if (r.success) { toast('Service page deleted'); loadServicePages(); }
+  else toast(r.error, 'error');
+}
+
+async function loadCustomOptions() {
+  const r = await api('/admin/custom-options.php');
+  allOpts = r.data || [];
+  renderOpts();
+}
+
+function filterOpts(cat, btn) {
+  currentOptCat = cat;
+  document.querySelectorAll('.tab-bar .tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderOpts();
+}
+
+function renderOpts() {
+  const filtered = allOpts.filter(o => o.category === currentOptCat);
+  const tbody = document.querySelector('#opt-table tbody');
+  tbody.innerHTML = filtered.map(o => `
+    <tr>
+      <td><strong>${esc(o.title)}</strong></td>
+      <td><code style="background:var(--slate-100);padding:2px 6px;border-radius:4px;font-size:.8rem">${esc(o.category)}</code></td>
+      <td style="color:var(--slate-500);font-size:.85rem">${esc(o.description || '—')}</td>
+      <td><strong>$${esc(o.price)}</strong></td>
+      <td><span class="tag ${o.is_active ? 'tag-active' : 'tag-inactive'}">${o.is_active ? 'Active' : 'Hidden'}</span></td>
+      <td style="display:flex;gap:6px;">
+        <button class="btn btn-sm btn-secondary" onclick="editOpt('${actionJson(o)}')">Edit</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteOpt(${o.id})">Delete</button>
+      </td>
+    </tr>
+  `).join('') || '<tr><td colspan="6" style="text-align:center;color:var(--slate-400);padding:20px;">No options for this category</td></tr>';
+}
+
+function openOptModal(data = null) {
+  document.getElementById('opt-id').value      = data?.id || '';
+  document.getElementById('opt-category').value= data?.category || 'websiteType';
+  document.getElementById('opt-oid').value     = data?.option_id || '';
+  document.getElementById('opt-title').value   = data?.title || '';
+  document.getElementById('opt-desc').value    = data?.description || '';
+  document.getElementById('opt-icon').value    = data?.icon || '';
+  document.getElementById('opt-price').value   = data?.price || 0;
+  document.getElementById('opt-sort').value    = data?.sort_order || 0;
+  document.getElementById('opt-active').value  = data?.is_active !== undefined ? data.is_active : 1;
+  document.getElementById('opt-modal-title').textContent = data ? 'Edit Option' : 'Add Builder Option';
+  document.getElementById('opt-modal').classList.add('open');
+}
+function editOpt(encoded) { openOptModal(readActionJson(encoded)); }
+
+async function saveOpt() {
+  const id = document.getElementById('opt-id').value;
+  const body = {
+    category:    document.getElementById('opt-category').value,
+    option_id:   document.getElementById('opt-oid').value,
+    title:       document.getElementById('opt-title').value,
+    description: document.getElementById('opt-desc').value,
+    icon:        document.getElementById('opt-icon').value,
+    price:       +document.getElementById('opt-price').value,
+    sort_order:  +document.getElementById('opt-sort').value,
+    is_active:   +document.getElementById('opt-active').value,
+  };
+  const r = id
+    ? await api('/admin/custom-options.php?id=' + id, 'PUT', body)
+    : await api('/admin/custom-options.php', 'POST', body);
+  if (r.success) { toast(r.message); closeModal('opt-modal'); loadCustomOptions(); }
+  else toast(r.error, 'error');
+}
+
+async function deleteOpt(id) {
+  if (!confirm('Delete this option?')) return;
+  const r = await api('/admin/custom-options.php?id=' + id, 'DELETE');
+  if (r.success) { toast('Option deleted'); loadCustomOptions(); }
+  else toast(r.error, 'error');
+}
+
+// ─── Submissions ──────────────────────────────────────────────────────────────
+async function loadSubs(type = 'custom', status = '') {
+  currentSubType = type;
+  const r = await api(`/admin/submissions.php?type=${type}${status ? '&status=' + status : ''}`);
+  allSubs = r.data || [];
+  renderSubs();
+}
+
+function filterSubs(status, btn) {
+  currentSubFilter = status;
+  document.querySelectorAll('#page-custom-submissions .tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  loadSubs('custom', status);
+}
+
+function renderSubs() {
+  const tbody = document.querySelector('#subs-table tbody');
+  tbody.innerHTML = allSubs.map(s => {
+    const pkg = `${esc(s.website_type)||'—'} | ${esc(s.pages)||'—'} | ${esc(s.design)||'—'}`;
+    const isCustom = (s.source || 'custom-package') === 'custom-package';
+    const displayPkg = isCustom ? pkg : esc(s.message || 'General website lead');
+    const total = Number(s.estimated_total || 0);
+    return `
+      <tr>
+        <td><strong>${esc(s.name)}</strong></td>
+        <td><span class="tag" style="background:#f3e8ff;color:#7e22ce;">${esc(s.source || 'custom-package')}</span></td>
+        <td>${esc(s.email)}</td>
+        <td>${esc(s.phone || '—')}</td>
+        <td style="font-size:.8rem;color:var(--slate-500);max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${displayPkg}</td>
+        <td><strong>${total > 0 ? '$' + total : '—'}</strong></td>
+        <td><span class="tag tag-${esc(s.status)}">${esc(s.status)}</span></td>
+        <td>${new Date(s.created_at).toLocaleDateString()}</td>
+        <td style="display:flex;gap:6px;">
+          <button class="btn btn-sm btn-secondary" onclick="viewSub(${s.id}, 'custom')">View</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteSub(${s.id}, 'custom')">✕</button>
+        </td>
+      </tr>
+    `;
+  }).join('') || '<tr><td colspan="9" style="text-align:center;color:var(--slate-400);padding:20px;">No submissions yet</td></tr>';
+}
+
+async function loadInquiries() {
+  const r = await api('/admin/submissions.php?type=inquiry');
+  const tbody = document.querySelector('#inq-table tbody');
+  tbody.innerHTML = (r.data||[]).map(s => `
+    <tr>
+      <td><strong>${esc(s.name)}</strong></td>
+      <td>${esc(s.email)}</td>
+      <td>${esc(s.phone || '—')}</td>
+      <td>${esc(s.package_id || '—')}</td>
+      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(s.message || '—')}</td>
+      <td><span class="tag tag-${esc(s.status)}">${esc(s.status)}</span></td>
+      <td>${new Date(s.created_at).toLocaleDateString()}</td>
+      <td style="display:flex;gap:6px;">
+        <button class="btn btn-sm btn-secondary" onclick="viewSub(${s.id},'inquiry')">View</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteSub(${s.id},'inquiry')">✕</button>
+      </td>
+    </tr>
+  `).join('') || '<tr><td colspan="8" style="text-align:center;color:var(--slate-400);padding:20px;">No inquiries yet</td></tr>';
+}
+
+async function viewSub(id, type) {
+  currentSubId   = id;
+  currentSubType = type;
+  const list   = type === 'custom' ? allSubs : [];
+  let sub = list.find(s => s.id == id);
+
+  if (!sub) {
+    const r = await api(`/admin/submissions.php?type=${type}&id=${id}`);
+    sub = r.data?.[0];
+  }
+  if (!sub) return;
+
+  document.getElementById('sub-status-sel').value = sub.status;
+
+  let html = `<div class="detail-grid">
+    <div class="detail-field"><label>Name</label><span>${esc(sub.name)}</span></div>
+    <div class="detail-field"><label>Email</label><span>${esc(sub.email)}</span></div>
+    <div class="detail-field"><label>Phone</label><span>${esc(sub.phone||'—')}</span></div>
+    <div class="detail-field"><label>Date</label><span>${new Date(sub.created_at).toLocaleString()}</span></div>
+    <div class="detail-field"><label>Source</label><span>${esc(sub.source||'custom-package')}</span></div>
+  `;
+
+  if (type === 'custom') {
+    html += `
+    <div class="detail-field"><label>Website Type</label><span>${esc(sub.website_type||'—')}</span></div>
+    <div class="detail-field"><label>Pages</label><span>${esc(sub.pages||'—')}</span></div>
+    <div class="detail-field"><label>Design</label><span>${esc(sub.design||'—')}</span></div>
+    <div class="detail-field"><label>Estimated Total</label><span><strong>$${esc(sub.estimated_total)}</strong></span></div>
+    </div>`;
+    const feats = sub.features || [];
+    if (feats.length) {
+      html += `<div style="margin-top:12px"><label style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--slate-500);">Extra Features</label>
+      <div class="features-chips" style="margin-top:8px">${feats.map(f=>`<span class="chip">${esc(f.title)}</span>`).join('')}</div></div>`;
+    }
+  } else {
+    html += `<div class="detail-field" style="grid-column:1/-1"><label>Message</label><span>${esc(sub.message||'—')}</span></div></div>`;
+  }
+
+  if (sub.message && type === 'custom') {
+    html += `<div class="detail-field" style="margin-top:12px"><label>Message</label><span>${esc(sub.message)}</span></div>`;
+  }
+
+  document.getElementById('sub-detail-body').innerHTML = html;
+  document.getElementById('sub-detail-modal').classList.add('open');
+
+  // Mark as viewed
+  if (sub.status === 'new') {
+    await api(`/admin/submissions.php?type=${type}&id=${id}`, 'PUT', { status: 'viewed' });
+    if (type === 'custom') loadSubs('custom', currentSubFilter);
+    else loadInquiries();
+  }
+}
+
+async function updateSubStatus() {
+  const status = document.getElementById('sub-status-sel').value;
+  const r = await api(`/admin/submissions.php?type=${currentSubType}&id=${currentSubId}`, 'PUT', { status });
+  if (r.success) {
+    toast('Status updated');
+    closeModal('sub-detail-modal');
+    if (currentSubType === 'custom') loadSubs('custom', currentSubFilter);
+    else loadInquiries();
+  } else toast(r.error, 'error');
+}
+
+async function deleteSub(id, type) {
+  if (!confirm('Delete this submission?')) return;
+  const r = await api(`/admin/submissions.php?type=${type}&id=${id}`, 'DELETE');
+  if (r.success) {
+    toast('Deleted');
+    if (type === 'custom') loadSubs('custom', currentSubFilter);
+    else loadInquiries();
+  } else toast(r.error, 'error');
+}
+
+// ─── Modal helpers ────────────────────────────────────────────────────────────
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+});
+
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+function initApp() { loadDashboard(); }
+async function checkSession() {
+  try {
+    const r = await api('/admin/auth.php?action=check');
+    if (r.success) {
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+      initApp();
+    } else {
+      document.getElementById('login-screen').style.display = 'flex';
+      document.getElementById('app').style.display = 'none';
+    }
+  } catch (e) {
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('app').style.display = 'none';
+  }
+}
+
+checkSession();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
+</body>
+</html>

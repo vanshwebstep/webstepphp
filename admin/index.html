@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
+<link href="assets/css/admin.css" rel="stylesheet">
+<title>Webstep Admin Panel</title>
+</head>
+<body>
+
+<!-- ─── Boot Loader (shown until session check completes) ──────────────────── -->
+<div id="boot-loader">
+  <div class="spinner"></div>
+</div>
+
+<!-- ─── Login ─────────────────────────────────────────────────────────────── -->
+<div id="login-screen">
+  <div class="login-box">
+    <h1>Webstep Admin</h1>
+    <p>Sign in to manage packages & inquiries</p>
+    <div class="form-group">
+      <label>Username</label>
+      <input type="text" id="login-user" placeholder="admin">
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="login-pass" placeholder="••••••••">
+    </div>
+    <div id="login-err" style="color:#dc2626;font-size:.85rem;margin-bottom:12px;display:none;"></div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;padding:13px;" onclick="doLogin()">Sign In →</button>
+  </div>
+</div>
+
+<!-- ─── App ───────────────────────────────────────────────────────────────── -->
+<div id="app">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <span>Webstep</span>
+      <small>Admin Panel</small>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">Overview</div>
+      <div class="nav-item active" onclick="showPage('dashboard')">
+        <span class="icon">📊</span> Dashboard
+      </div>
+      <div class="nav-section">Packages</div>
+      <div class="nav-item" onclick="showPage('tabs')">
+        <span class="icon">🏷️</span> Categories / Tabs
+      </div>
+      <div class="nav-item" onclick="showPage('packages')">
+        <span class="icon">📦</span> Packages
+      </div>
+      <div class="nav-section">Content</div>
+      <div class="nav-item" onclick="showPage('portfolio')">
+        <span class="icon">PF</span> Portfolio Projects
+      </div>
+      <div class="nav-item" onclick="showPage('blogs')">
+        <span class="icon">BL</span> Blogs
+      </div>
+      <div class="nav-item" onclick="showPage('case-studies')">
+        <span class="icon">CS</span> Case Studies
+      </div>
+      <div class="nav-item" onclick="showPage('service-pages')">
+        <span class="icon">SP</span> Service Pages
+      </div>
+      <div class="nav-section">Custom Builder</div>
+      <div class="nav-item" onclick="showPage('custom-options')">
+        <span class="icon">⚙️</span> Builder Options
+      </div>
+      <div class="nav-section">Leads</div>
+      <div class="nav-item" onclick="showPage('custom-submissions')">
+        <span class="icon">🛠️</span> Website Leads <span class="badge" id="badge-custom">0</span>
+      </div>
+      <div class="nav-item" onclick="showPage('inquiries')">
+        <span class="icon">💬</span> Plan Inquiries <span class="badge" id="badge-inq">0</span>
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="logout-btn" onclick="doLogout()">⎋ Sign Out</button>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <!-- Dashboard -->
+    <div id="page-dashboard" class="page active">
+      <div class="page-header">
+        <div><h2>Dashboard</h2><p>Welcome back! Here's your overview.</p></div>
+      </div>
+      <div class="stats-grid" id="stats-grid">
+        <div class="stat-card"><div class="stat-label">Total Packages</div><div class="stat-val" id="s-packages">—</div></div>
+        <div class="stat-card"><div class="stat-label">Categories</div><div class="stat-val" id="s-tabs">—</div></div>
+        <div class="stat-card"><div class="stat-label">Website Leads</div><div class="stat-val" id="s-custom">—</div></div>
+        <div class="stat-card"><div class="stat-label">Plan Inquiries</div><div class="stat-val" id="s-inq">—</div></div>
+        <div class="stat-card"><div class="stat-label">New Leads</div><div class="stat-val" id="s-new">—</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title">📋 Recent Website Leads</div>
+        <div class="table-wrap"><table id="dash-custom-table">
+          <thead><tr><th>Name</th><th>Email</th><th>Total</th><th>Status</th><th>Date</th></tr></thead>
+          <tbody></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div id="page-tabs" class="page">
+      <div class="page-header">
+        <div><h2>Categories / Tabs</h2><p>Manage package category tabs</p></div>
+        <button class="btn btn-primary" onclick="openTabModal()">+ Add Category</button>
+      </div>
+      <div class="card">
+        <div class="table-wrap"><table id="tabs-table">
+          <thead><tr><th>Name</th><th>Order</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- Packages -->
+    <div id="page-packages" class="page">
+      <div class="page-header">
+        <div><h2>Packages</h2><p>Create and manage service packages</p></div>
+        <button class="btn btn-primary" onclick="openPkgModal()">+ New Package</button>
+      </div>
+      <div class="card">
+        <div class="table-wrap"><table id="pkg-table">
+          <thead><tr><th>Title</th><th>Category</th><th>Price</th><th>Popular</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- Portfolio -->
+    <div id="page-portfolio" class="page">
+      <div class="page-header">
+        <div><h2>Portfolio Projects</h2><p>Create and manage portfolio cards shown on the Works page</p></div>
+        <button class="btn btn-primary" onclick="openPortfolioModal()">+ New Project</button>
+      </div>
+      <div class="card">
+        <div class="table-wrap"><table id="portfolio-table">
+          <thead><tr><th>Title</th><th>Category</th><th>Tags</th><th>Tech</th><th>Year</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- Blogs -->
+    <div id="page-blogs" class="page">
+      <div class="page-header">
+        <div><h2>Blogs</h2><p>Create and manage blogs</p></div>
+        <button class="btn btn-primary" onclick="openBlogModal()">+ New Blog</button>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table id="blog-table">
+            <thead>
+              <tr>
+                <th>Image</th><th>Title</th><th>Category</th><th>Author</th>
+                <th>Date</th><th>Featured</th><th>Status</th><th>Actions</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Case Studies -->
+    <div id="page-case-studies" class="page">
+      <div class="page-header">
+        <div><h2>Case Studies</h2><p>Create and manage detailed case studies shown on the Case Study page</p></div>
+        <button class="btn btn-primary" onclick="openCaseModal()">+ New Case Study</button>
+      </div>
+      <div class="card">
+        <div class="table-wrap"><table id="case-table">
+          <thead><tr><th>Title</th><th>Category</th><th>Client</th><th>Featured</th><th>Year</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- Service Pages -->
+    <div id="page-service-pages" class="page">
+      <div class="page-header">
+        <div><h2>Service Pages</h2><p>Edit Industrial Training and Hire Full Time Developers page content</p></div>
+        <button class="btn btn-primary" onclick="openServicePageModal()">+ New Page</button>
+      </div>
+      <div class="card">
+        <div class="table-wrap"><table id="service-pages-table">
+          <thead><tr><th>Title</th><th>Slug</th><th>Status</th><th>Updated</th><th>Actions</th></tr></thead>
+          <tbody></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- Custom Options -->
+    <div id="page-custom-options" class="page">
+      <div class="page-header">
+        <div><h2>Custom Builder Options</h2><p>Manage the drag-and-drop builder items</p></div>
+        <button class="btn btn-primary" onclick="openOptModal()">+ Add Option</button>
+      </div>
+      <div class="tab-bar">
+        <button class="tab-btn active" onclick="filterOpts('websiteType',this)">Website Type</button>
+        <button class="tab-btn" onclick="filterOpts('pages',this)">Pages</button>
+        <button class="tab-btn" onclick="filterOpts('design',this)">Design</button>
+        <button class="tab-btn" onclick="filterOpts('features',this)">Features</button>
+      </div>
+      <div class="card">
+        <div class="table-wrap"><table id="opt-table">
+          <thead><tr><th>Title</th><th>Category</th><th>Description</th><th>Price</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- Custom Submissions -->
+    <div id="page-custom-submissions" class="page">
+      <div class="page-header">
+        <div><h2>Website Leads</h2><p>View contact, quote, expert, and custom package submissions</p></div>
+      </div>
+      <div class="tab-bar">
+        <button class="tab-btn active" onclick="filterSubs('',this)">All</button>
+        <button class="tab-btn" onclick="filterSubs('new',this)">New</button>
+        <button class="tab-btn" onclick="filterSubs('viewed',this)">Viewed</button>
+        <button class="tab-btn" onclick="filterSubs('contacted',this)">Contacted</button>
+        <button class="tab-btn" onclick="filterSubs('closed',this)">Closed</button>
+      </div>
+      <div class="card">
+        <div class="table-wrap"><table id="subs-table">
+          <thead><tr><th>Name</th><th>Source</th><th>Email</th><th>Phone</th><th>Package</th><th>Total</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+          <tbody></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- Inquiries -->
+    <div id="page-inquiries" class="page">
+      <div class="page-header">
+        <div><h2>Plan Inquiries</h2><p>View all "Choose Plan" form submissions</p></div>
+      </div>
+      <div class="card">
+        <div class="table-wrap"><table id="inq-table">
+          <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Package ID</th><th>Message</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+          <tbody></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- ─── Modals ─────────────────────────────────────────────────────────────── -->
+
+    <!-- Tab Modal -->
+    <div id="tab-modal" class="modal-overlay">
+      <div class="modal">
+        <div class="modal-header">
+          <h3 id="tab-modal-title">Add Category</h3>
+          <button class="modal-close" onclick="closeModal('tab-modal')">✕</button>
+        </div>
+        <input type="hidden" id="tab-id">
+        <div class="form-group"><label>Name</label><input id="tab-name" placeholder="e.g. website development"></div>
+        <div class="form-group"><label>Sort Order</label><input id="tab-sort" type="number" value="0"></div>
+        <div class="form-group">
+          <label>Active</label>
+          <select id="tab-active"><option value="1">Yes</option><option value="0">No</option></select>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="closeModal('tab-modal')">Cancel</button>
+          <button class="btn btn-primary" onclick="saveTab()">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Package Modal -->
+    <div id="pkg-modal" class="modal-overlay">
+      <div class="modal">
+        <div class="modal-header">
+          <h3 id="pkg-modal-title">New Package</h3>
+          <button class="modal-close" onclick="closeModal('pkg-modal')">✕</button>
+        </div>
+        <input type="hidden" id="pkg-id">
+        <div class="form-group"><label>Title</label><input id="pkg-title" placeholder="e.g. Website Pro"></div>
+        <div class="form-group"><label>Category</label><select id="pkg-category"></select></div>
+        <div class="form-group"><label>Description</label><textarea id="pkg-desc" rows="2" placeholder="Short description..."></textarea></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+          <div class="form-group"><label>Symbol</label><input id="pkg-symbol" value="$"></div>
+          <div class="form-group"><label>Price</label><input id="pkg-price" type="number" value="0"></div>
+          <div class="form-group"><label>Price Desc</label><input id="pkg-pricedesc" value="/project"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+          <div class="form-group"><label>Button Text</label><input id="pkg-btn" value="Choose Plan"></div>
+          <div class="form-group"><label>Sort Order</label><input id="pkg-sort" type="number" value="0"></div>
+          <div class="form-group"><label>Popular</label><select id="pkg-popular"><option value="0">No</option><option value="1">Yes ⭐</option></select></div>
+        </div>
+        <div class="form-group">
+          <label>Features / Events</label>
+          <div class="features-list" id="features-list"></div>
+          <button class="add-feature-btn" onclick="addFeatureRow()">+ Add Feature</button>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="closeModal('pkg-modal')">Cancel</button>
+          <button class="btn btn-primary" onclick="savePkg()">Save Package</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Portfolio Modal -->
+    <div id="portfolio-modal" class="modal-overlay">
+      <div class="modal" style="width:760px">
+        <div class="modal-header">
+          <h3 id="portfolio-modal-title">New Portfolio Project</h3>
+          <button class="modal-close" onclick="closeModal('portfolio-modal')">x</button>
+        </div>
+        <input type="hidden" id="portfolio-id">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="form-group"><label>Title</label><input id="portfolio-title" placeholder="Dr. Treat"></div>
+          <div class="form-group"><label>Category Label</label><input id="portfolio-category" placeholder="Healthcare / React.js"></div>
+        </div>
+        <div class="form-group"><label>Image URL</label><input id="portfolio-image" placeholder="https://..."></div>
+        <div class="form-group"><label>Description</label><textarea id="portfolio-desc" rows="3" placeholder="Short portfolio card description..."></textarea></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="form-group">
+            <label>Filter Tags</label>
+            <select id="portfolio-tags" multiple size="7">
+              <option value="UI & UX">UI & UX</option>
+              <option value="Shopify">Shopify</option>
+              <option value="WordPress">WordPress</option>
+              <option value="Front End Dev">Front End Dev</option>
+              <option value="Development">Development</option>
+              <option value="PHP">PHP</option>
+              <option value="Laravel">Laravel</option>
+              <option value="Node.js">Node.js</option>
+              <option value="AI">AI</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Tech Stack</label>
+            <select id="portfolio-tech" multiple size="7">
+              <option value="React">React</option>
+              <option value="Next.js">Next.js</option>
+              <option value="Node.js">Node.js</option>
+              <option value="Laravel">Laravel</option>
+              <option value="PHP">PHP</option>
+              <option value="WordPress">WordPress</option>
+              <option value="Shopify">Shopify</option>
+              <option value="Tailwind">Tailwind</option>
+              <option value="MySQL">MySQL</option>
+              <option value="MongoDB">MongoDB</option>
+              <option value="AWS">AWS</option>
+              <option value="Figma">Figma</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+          <div class="form-group"><label>Year</label><input id="portfolio-year" placeholder="2024"></div>
+          <div class="form-group"><label>Sort Order</label><input id="portfolio-sort" type="number" value="0"></div>
+          <div class="form-group"><label>Active</label><select id="portfolio-active"><option value="1">Yes</option><option value="0">No</option></select></div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="closeModal('portfolio-modal')">Cancel</button>
+          <button class="btn btn-primary" onclick="savePortfolio()">Save Project</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Blog Modal -->
+    <div id="blog-modal" class="modal-overlay">
+      <div class="modal" style="width:850px">
+        <div class="modal-header">
+          <h3 id="blog-modal-title">New Blog</h3>
+          <button class="modal-close" onclick="closeModal('blog-modal')">×</button>
+        </div>
+        <input type="hidden" id="blog-id">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="form-group"><label>Title</label><input id="blog-title"></div>
+          <div class="form-group"><label>Slug</label><input id="blog-slug"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="form-group"><label>Category</label><input id="blog-category"></div>
+          <div class="form-group"><label>Author</label><input id="blog-author" value="Webstep Team"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="form-group"><label>Author Avatar URL</label><input id="blog-author-avatar" placeholder="https://..."></div>
+          <div class="form-group"><label>Author Bio</label><input id="blog-author-bio" placeholder="Senior content strategist at Webstep Solutions..."></div>
+        </div>
+        <div class="form-group"><label>Image URL</label><input id="blog-image" placeholder="https://..."></div>
+        <div class="form-group"><label>Excerpt</label><textarea id="blog-excerpt" rows="3"></textarea></div>
+        <div class="form-group">
+          <label>Content</label>
+          <div id="blog-content-editor" style="background:var(--slate-50); border-radius:10px; min-height:220px;"></div>
+          <textarea id="blog-content" style="display:none;"></textarea>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="form-group"><label>Published Date</label><input type="date" id="blog-published-date"></div>
+          <div class="form-group"><label>Read Time</label><input id="blog-read-time" placeholder="5 min read"></div>
+          <div class="form-group"><label>Views</label><input id="blog-views" type="number" placeholder="0"></div>
+          <div class="form-group"><label>Likes</label><input id="blog-likes" type="number" placeholder="0"></div>
+        </div>
+        <div class="form-group"><label>Tags (comma separated)</label><input id="blog-tags" placeholder="React, PHP, AI, Web Design"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="form-group"><label>Featured</label><select id="blog-featured"><option value="0">No</option><option value="1">Yes</option></select></div>
+          <div class="form-group"><label>Active</label><select id="blog-active"><option value="1">Yes</option><option value="0">No</option></select></div>
+        </div>
+        <div class="form-group"><label>SEO Title</label><input id="blog-seo-title"></div>
+        <div class="form-group"><label>SEO Description</label><textarea id="blog-seo-description" rows="3"></textarea></div>
+        <div style="display:grid;grid-template-columns:1fr 2fr;gap:12px">
+          <div class="form-group"><label>Sort Order</label><input id="blog-sort" type="number" value="0"></div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="closeModal('blog-modal')">Cancel</button>
+          <button class="btn btn-primary" onclick="saveBlog()">Save Blog</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Case Study Modal -->
+    <div id="case-modal" class="modal-overlay">
+      <div class="modal" style="width:920px">
+        <div class="modal-header">
+          <h3 id="case-modal-title">New Case Study</h3>
+          <button class="modal-close" onclick="closeModal('case-modal')">x</button>
+        </div>
+        <input type="hidden" id="case-id">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="form-group"><label>Title</label><input id="case-title" placeholder="Dr. Treat"></div>
+          <div class="form-group"><label>Slug</label><input id="case-slug" placeholder="dr-treat"></div>
+        </div>
+        <div class="form-group"><label>Tagline</label><input id="case-tagline" placeholder="Redesigning patient care from the ground up"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+          <div class="form-group"><label>Category</label><input id="case-category" placeholder="Healthcare"></div>
+          <div class="form-group"><label>Client</label><input id="case-client" placeholder="Dr. Treat Inc."></div>
+          <div class="form-group"><label>Logo Text</label><input id="case-logo" placeholder="DT"></div>
+        </div>
+        <div class="form-group"><label>Image URL</label><input id="case-image" placeholder="https://..."></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+          <div class="form-group"><label>Duration</label><input id="case-duration" placeholder="6 months"></div>
+          <div class="form-group"><label>Year</label><input id="case-year" placeholder="2024"></div>
+          <div class="form-group"><label>Featured</label><select id="case-featured"><option value="0">No</option><option value="1">Yes</option></select></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="form-group">
+            <label>Tags</label>
+            <select id="case-tags" multiple size="7">
+              <option value="Healthcare">Healthcare</option>
+              <option value="E-Commerce">E-Commerce</option>
+              <option value="SaaS">SaaS</option>
+              <option value="Education">Education</option>
+              <option value="Fintech">Fintech</option>
+              <option value="Non-Profit">Non-Profit</option>
+              <option value="Enterprise">Enterprise</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Tech Stack</label>
+            <select id="case-tech" multiple size="7">
+              <option value="React">React</option>
+              <option value="Next.js">Next.js</option>
+              <option value="Node.js">Node.js</option>
+              <option value="Laravel">Laravel</option>
+              <option value="PHP">PHP</option>
+              <option value="MySQL">MySQL</option>
+              <option value="PostgreSQL">PostgreSQL</option>
+              <option value="MongoDB">MongoDB</option>
+              <option value="AWS">AWS</option>
+              <option value="Redis">Redis</option>
+              <option value="Stripe">Stripe</option>
+              <option value="Figma">Figma</option>
+              <option value="WebRTC">WebRTC</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group"><label>Challenge</label><textarea id="case-challenge" rows="3"></textarea></div>
+        <div class="form-group"><label>Solution</label><textarea id="case-solution" rows="3"></textarea></div>
+        <div class="form-group"><label>Result</label><textarea id="case-result" rows="3"></textarea></div>
+        <div class="form-group"><label>Metrics (one per line: Label: Value)</label><textarea id="case-metrics" rows="3" placeholder="Drop-off Reduced: 72%&#10;Booking Speed: 3x"></textarea></div>
+        <div class="form-group"><label>Deliverables (comma separated)</label><textarea id="case-deliverables" rows="2" placeholder="Custom booking engine, Admin dashboard"></textarea></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="form-group"><label>Testimonial Quote</label><textarea id="case-testimonial-quote" rows="3"></textarea></div>
+          <div>
+            <div class="form-group"><label>Testimonial Author</label><input id="case-testimonial-author"></div>
+            <div class="form-group"><label>Testimonial Role</label><input id="case-testimonial-role"></div>
+          </div>
+        </div>
+        <div class="form-group"><label>Testimonial Avatar URL</label><input id="case-testimonial-avatar" placeholder="https://..."></div>
+        <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:12px">
+          <div class="form-group"><label>Color</label><input id="case-color" value="#6366f1"></div>
+          <div class="form-group"><label>Accent</label><input id="case-accent" value="#e0e7ff"></div>
+          <div class="form-group"><label>Light Text</label><input id="case-light-text" value="#4338ca"></div>
+          <div class="form-group"><label>Dark BG</label><input id="case-dark-bg" value="#4338ca"></div>
+          <div class="form-group"><label>Sort</label><input id="case-sort" type="number" value="0"></div>
+          <div class="form-group"><label>Active</label><select id="case-active"><option value="1">Yes</option><option value="0">No</option></select></div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="closeModal('case-modal')">Cancel</button>
+          <button class="btn btn-primary" onclick="saveCaseStudy()">Save Case Study</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Service Page Modal -->
+    <div id="service-page-modal" class="modal-overlay">
+      <div class="modal" style="width:940px">
+        <div class="modal-header">
+          <h3 id="service-page-modal-title">Edit Service Page</h3>
+          <button class="modal-close" onclick="closeModal('service-page-modal')">x</button>
+        </div>
+        <input type="hidden" id="service-page-id">
+        <div style="display:grid;grid-template-columns:1fr 1fr 120px 120px;gap:12px">
+          <div class="form-group"><label>Title</label><input id="service-page-title" placeholder="Industrial Training"></div>
+          <div class="form-group"><label>Slug</label><input id="service-page-slug" placeholder="industrial-training"></div>
+          <div class="form-group"><label>Sort</label><input id="service-page-sort" type="number" value="0"></div>
+          <div class="form-group"><label>Active</label><select id="service-page-active"><option value="1">Yes</option><option value="0">No</option></select></div>
+        </div>
+        <div class="form-group">
+          <label>Page Content JSON</label>
+          <textarea id="service-page-content" rows="20" style="font-family:Consolas,monospace;font-size:.82rem;line-height:1.5" placeholder='{"hero":{},"sections":[]}'></textarea>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="closeModal('service-page-modal')">Cancel</button>
+          <button class="btn btn-primary" onclick="saveServicePage()">Save Page</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Custom Option Modal -->
+    <div id="opt-modal" class="modal-overlay">
+      <div class="modal">
+        <div class="modal-header">
+          <h3 id="opt-modal-title">Add Builder Option</h3>
+          <button class="modal-close" onclick="closeModal('opt-modal')">✕</button>
+        </div>
+        <input type="hidden" id="opt-id">
+        <div class="form-group">
+          <label>Category</label>
+          <select id="opt-category">
+            <option value="websiteType">Website Type</option>
+            <option value="pages">Pages</option>
+            <option value="design">Design</option>
+            <option value="features">Features</option>
+          </select>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="form-group"><label>Option ID (slug)</label><input id="opt-oid" placeholder="e.g. ecommerce"></div>
+          <div class="form-group"><label>Title</label><input id="opt-title" placeholder="E-Commerce"></div>
+        </div>
+        <div class="form-group"><label>Description (optional)</label><input id="opt-desc" placeholder="Short label under title"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+          <div class="form-group"><label>Icon Name</label><input id="opt-icon" placeholder="FaShoppingCart"></div>
+          <div class="form-group"><label>Price ($)</label><input id="opt-price" type="number" value="0"></div>
+          <div class="form-group"><label>Sort Order</label><input id="opt-sort" type="number" value="0"></div>
+        </div>
+        <div class="form-group">
+          <label>Active</label>
+          <select id="opt-active"><option value="1">Yes</option><option value="0">No</option></select>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="closeModal('opt-modal')">Cancel</button>
+          <button class="btn btn-primary" onclick="saveOpt()">Save Option</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Submission Detail Modal -->
+    <div id="sub-detail-modal" class="modal-overlay">
+      <div class="modal">
+        <div class="modal-header">
+          <h3>Submission Detail</h3>
+          <button class="modal-close" onclick="closeModal('sub-detail-modal')">✕</button>
+        </div>
+        <div id="sub-detail-body"></div>
+        <div class="modal-footer">
+          <select id="sub-status-sel" style="padding:8px 12px;border-radius:8px;border:1.5px solid var(--slate-200);">
+            <option value="new">New</option>
+            <option value="viewed">Viewed</option>
+            <option value="contacted">Contacted</option>
+            <option value="closed">Closed</option>
+          </select>
+          <button class="btn btn-primary" onclick="updateSubStatus()">Update Status</button>
+          <button class="btn btn-secondary" onclick="closeModal('sub-detail-modal')">Close</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
+<script src="assets/js/01-config.js"></script>
+<script src="assets/js/02-utils.js"></script>
+<script src="assets/js/04-navigation.js"></script>
+<script src="assets/js/05-dashboard.js"></script>
+<script src="assets/js/06-tabs.js"></script>
+<script src="assets/js/07-packages.js"></script>
+<script src="assets/js/08-portfolio.js"></script>
+<script src="assets/js/09-blogs.js"></script>
+<script src="assets/js/10-case-studies.js"></script>
+<script src="assets/js/11-service-pages.js"></script>
+<script src="assets/js/12-custom-options.js"></script>
+<script src="assets/js/13-submissions.js"></script>
+<script src="assets/js/14-modals.js"></script>
+<script src="assets/js/03-boot.js"></script>
+</body>
+</html>
