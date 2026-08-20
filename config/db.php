@@ -1,14 +1,14 @@
 <?php
 // ─── Database Configuration ───────────────────────────────────────────────────
-define('DB_HOST', 'localhost');
-define('DB_USER', 'u510451310_webstepphp');
-define('DB_PASS', 'Webstepphp@135');
-define('DB_NAME', 'u510451310_webstepphp');
-
 // define('DB_HOST', 'localhost');
-// define('DB_USER', 'root');      // XAMPP/WAMP ka default user
-// define('DB_PASS', '');          // XAMPP me default password blank hota hai
+// define('DB_USER', 'u510451310_webstepphp');
+// define('DB_PASS', 'Webstepphp@135');
 // define('DB_NAME', 'u510451310_webstepphp');
+
+define('DB_HOST', 'localhost');
+define('DB_USER', 'root');      // XAMPP/WAMP ka default user
+define('DB_PASS', '');          // XAMPP me default password blank hota hai
+define('DB_NAME', 'u510451310_webstepphp');
 
 function getDB(): PDO {
     static $pdo = null;
@@ -28,7 +28,7 @@ function getDB(): PDO {
     }
     return $pdo;
 }
-// https://webstepdev.com/demo/webstepphp
+// http://localhost/webstepphp
 // https://webstepdev.com/demo/webstepphp
 
 

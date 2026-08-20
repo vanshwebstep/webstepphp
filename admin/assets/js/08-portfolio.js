@@ -7,8 +7,8 @@ async function loadPortfolio() {
     <tr>
       <td><strong>${esc(p.title)}</strong></td>
       <td><span class="tag" style="background:#e0f2fe;color:#0369a1;">${esc(p.category)}</span></td>
-      <td style="max-width:220px">${(p.tags||[]).map(t => `<span class="chip">${esc(t)}</span>`).join(' ') || '-'}</td>
-      <td style="max-width:220px">${(p.tech||[]).map(t => `<span class="chip" style="background:#ecfeff;color:#0e7490;">${esc(t)}</span>`).join(' ') || '-'}</td>
+      <td style="max-width:220px">${(p.tags || []).map(t => `<span class="chip">${esc(t)}</span>`).join(' ') || '-'}</td>
+      <td style="max-width:220px">${(p.tech || []).map(t => `<span class="chip" style="background:#ecfeff;color:#0e7490;">${esc(t)}</span>`).join(' ') || '-'}</td>
       <td>${esc(p.year || '-')}</td>
       <td><span class="tag ${+p.is_active ? 'tag-active' : 'tag-inactive'}">${+p.is_active ? 'Active' : 'Hidden'}</span></td>
       <td style="display:flex;gap:6px;">
@@ -24,6 +24,10 @@ function openPortfolioModal(data = null) {
   document.getElementById('portfolio-title').value = data?.title || '';
   document.getElementById('portfolio-category').value = data?.category || '';
   document.getElementById('portfolio-image').value = data?.image || '';
+  const img = document.getElementById('portfolio-image-preview-img');
+  if (data?.image) { img.src = data.image; img.style.display = 'inline-block'; }
+  else { img.style.display = 'none'; }
+  document.getElementById('portfolio-image-file').value = '';
   document.getElementById('portfolio-desc').value = data?.description || '';
   setMultiSelectValues('portfolio-tags', data?.tags || []);
   setMultiSelectValues('portfolio-tech', data?.tech || []);
@@ -55,7 +59,9 @@ async function savePortfolio() {
   if (r.success) { toast(r.message); closeModal('portfolio-modal'); loadPortfolio(); }
   else toast(r.error, 'error');
 }
-
+function uploadPortfolioImage(input) {
+  uploadImage(input, 'portfolio', 'portfolio-image', 'portfolio-image-preview-img', 'portfolio-image-uploading');
+}
 async function deletePortfolio(id) {
   if (!confirm('Delete this portfolio project?')) return;
   const r = await api('/admin/portfolio.php?id=' + id, 'DELETE');

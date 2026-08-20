@@ -80,3 +80,39 @@ function closeModal(id) {
 document.querySelectorAll('.modal-overlay').forEach(m => {
   m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
 });
+
+// ─── Generic Image Upload ──────────────────────────────────────────────────
+async function uploadImage(input, folder, hiddenId, previewImgId, uploadingId) {
+  const file = input.files[0];
+  if (!file) return;
+
+  document.getElementById(uploadingId).style.display = 'inline';
+  document.getElementById(previewImgId).style.display = 'none';
+
+  const fd = new FormData();
+  fd.append('file', file);
+  fd.append('folder', folder);
+
+  try {
+    const res = await fetch(BASE + '/admin/upload.php', {
+      method: 'POST',
+      credentials: 'include',
+      body: fd,
+    });
+    const r = await res.json();
+    document.getElementById(uploadingId).style.display = 'none';
+
+    if (r.success) {
+      document.getElementById(hiddenId).value = r.data.url;
+      const img = document.getElementById(previewImgId);
+      img.src = r.data.url;
+      img.style.display = 'inline-block';
+      toast(r.message);
+    } else {
+      toast(r.error, 'error');
+    }
+  } catch (e) {
+    document.getElementById(uploadingId).style.display = 'none';
+    toast('Upload failed', 'error');
+  }
+}

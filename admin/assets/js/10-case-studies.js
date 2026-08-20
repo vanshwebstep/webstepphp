@@ -32,6 +32,10 @@ function openCaseModal(data = null) {
   document.getElementById('case-client').value = data?.client || '';
   document.getElementById('case-logo').value = data?.logo || '';
   document.getElementById('case-image').value = data?.image || '';
+const caseImg = document.getElementById('case-image-preview-img');
+if (data?.image) { caseImg.src = data.image; caseImg.style.display = 'inline-block'; }
+else { caseImg.style.display = 'none'; }
+document.getElementById('case-image-file').value = '';
   document.getElementById('case-duration').value = data?.duration || '';
   document.getElementById('case-year').value = data?.year || new Date().getFullYear();
   document.getElementById('case-featured').value = data?.featured ? 1 : 0;
@@ -101,4 +105,7 @@ async function deleteCaseStudy(id) {
   const r = await api('/admin/case-studies.php?id=' + id, 'DELETE');
   if (r.success) { toast('Case study deleted'); loadCaseStudies(); }
   else toast(r.error, 'error');
+}
+function uploadCaseImage(input) {
+  uploadImage(input, 'case-studies', 'case-image', 'case-image-preview-img', 'case-image-uploading');
 }

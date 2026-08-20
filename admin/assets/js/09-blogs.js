@@ -29,6 +29,10 @@ function openBlogModal(data = null) {
   document.getElementById('blog-author-avatar').value = data?.author_avatar || '';
   document.getElementById('blog-author-bio').value = data?.author_bio || '';
   document.getElementById('blog-image').value = data?.image || '';
+  const blogImg = document.getElementById('blog-image-preview-img');
+  if (data?.image) { blogImg.src = data.image; blogImg.style.display = 'inline-block'; }
+  else { blogImg.style.display = 'none'; }
+  document.getElementById('blog-image-file').value = '';
   document.getElementById('blog-excerpt').value = data?.excerpt || '';
 
   initQuillEditor();
@@ -99,4 +103,8 @@ async function deleteBlog(id) {
   } else {
     toast(r.error, 'error');
   }
+}
+
+function uploadBlogImage(input) {
+  uploadImage(input, 'blog', 'blog-image', 'blog-image-preview-img', 'blog-image-uploading');
 }
