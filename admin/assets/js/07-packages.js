@@ -5,7 +5,11 @@ async function loadPackages() {
   tbody.innerHTML = (r.data||[]).map(p => `
   <tr>
     <td><strong>${p.title}</strong></td>
-    <td><span class="tag" style="background:#ede9fe;color:#7c3aed;">${p.category_name}</span></td>
+    <td>
+      ${p.show_on_b2b ? '<span class="tag" style="background:#dbeafe;color:#1d4ed8;">B2B</span>' : ''}
+      ${p.show_on_packages ? '<span class="tag" style="background:#ede9fe;color:#7c3aed;">Packages</span>' : ''}
+      ${(!p.show_on_b2b && !p.show_on_packages) ? '<span class="tag tag-inactive">Hidden</span>' : ''}
+    </td>
     <td>${p.symbol}${p.price} <small style="color:var(--slate-400)">${p.price_desc}</small></td>
     <td>${p.isPopular ? '<span class="tag tag-popular">⭐ Popular</span>' : '—'}</td>
     <td><span class="tag ${p.is_active ? 'tag-active' : 'tag-inactive'}">${p.is_active ? 'Active' : 'Hidden'}</span></td>
@@ -17,11 +21,7 @@ async function loadPackages() {
 `).join('') || '<tr><td colspan="6" style="text-align:center;color:var(--slate-400);padding:20px;">No packages yet</td></tr>';
 }
 
-async function openPkgModal(data = null) {
-  const tabs = await api('/admin/tabs.php');
-  const sel = document.getElementById('pkg-category');
-  sel.innerHTML = (tabs.data||[]).map(t => `<option value="${t.id}">${t.name}</option>`).join('');
-
+function openPkgModal(data = null) {
   document.getElementById('pkg-id').value       = data?.id || '';
   document.getElementById('pkg-title').value    = data?.title || '';
   document.getElementById('pkg-desc').value     = data?.description || '';
@@ -31,7 +31,8 @@ async function openPkgModal(data = null) {
   document.getElementById('pkg-btn').value      = data?.btn_text || 'Choose Plan';
   document.getElementById('pkg-sort').value     = data?.sort_order || 0;
   document.getElementById('pkg-popular').value  = data?.isPopular ? 1 : 0;
-  if (data?.category_id) sel.value = data.category_id;
+  document.getElementById('pkg-show-b2b').checked      = !!data?.show_on_b2b;
+  document.getElementById('pkg-show-packages').checked = !!data?.show_on_packages;
 
   const fl = document.getElementById('features-list');
   fl.innerHTML = '';
@@ -62,7 +63,6 @@ async function savePkg() {
 
   const body = {
     title: document.getElementById('pkg-title').value,
-    category_id: +document.getElementById('pkg-category').value,
     description: document.getElementById('pkg-desc').value,
     symbol: document.getElementById('pkg-symbol').value,
     price: +document.getElementById('pkg-price').value,
@@ -70,6 +70,8 @@ async function savePkg() {
     btn_text: document.getElementById('pkg-btn').value,
     sort_order: +document.getElementById('pkg-sort').value,
     is_popular: +document.getElementById('pkg-popular').value,
+    show_on_b2b: document.getElementById('pkg-show-b2b').checked ? 1 : 0,
+    show_on_packages: document.getElementById('pkg-show-packages').checked ? 1 : 0,
     features,
   };
 

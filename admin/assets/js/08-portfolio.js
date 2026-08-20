@@ -6,9 +6,17 @@ async function loadPortfolio() {
   tbody.innerHTML = allPortfolio.map(p => `
     <tr>
       <td><strong>${esc(p.title)}</strong></td>
-      <td><span class="tag" style="background:#e0f2fe;color:#0369a1;">${esc(p.category)}</span></td>
-      <td style="max-width:220px">${(p.tags || []).map(t => `<span class="chip">${esc(t)}</span>`).join(' ') || '-'}</td>
-      <td style="max-width:220px">${(p.tech || []).map(t => `<span class="chip" style="background:#ecfeff;color:#0e7490;">${esc(t)}</span>`).join(' ') || '-'}</td>
+      <td>${esc(p.category || '-')}</td>
+      <td style="max-width:220px">
+        <div style="display:flex;flex-wrap:wrap;gap:4px;">
+          ${(p.tags || []).map(t => `<span class="chip">${esc(t)}</span>`).join('')}
+        </div>
+      </td>
+      <td style="max-width:220px">
+        <div style="display:flex;flex-wrap:wrap;gap:4px;">
+          ${(p.tech || []).map(t => `<span class="chip" style="background:#ecfeff;color:#0e7490;">${esc(t)}</span>`).join('')}
+        </div>
+      </td>
       <td>${esc(p.year || '-')}</td>
       <td><span class="tag ${+p.is_active ? 'tag-active' : 'tag-inactive'}">${+p.is_active ? 'Active' : 'Hidden'}</span></td>
       <td style="display:flex;gap:6px;">
@@ -19,10 +27,21 @@ async function loadPortfolio() {
   `).join('') || '<tr><td colspan="7" style="text-align:center;color:var(--slate-400);padding:20px;">No portfolio projects yet</td></tr>';
 }
 
-function openPortfolioModal(data = null) {
+async function openPortfolioModal(data = null) {
+  const sel = document.getElementById('portfolio-tags');
+
+  try {
+    const cats = await api('/admin/portfolio-categories.php');
+    sel.innerHTML = (cats.data || []).map(c => `<option value="${esc(c.name)}">${esc(c.name)}</option>`).join('');
+  } catch (err) {
+    console.error('Failed to load portfolio categories:', err);
+    sel.innerHTML = '<option disabled>⚠ Failed to load categories</option>';
+    toast('Could not load categories — check admin/portfolio-categories.php', 'error');
+  }
+
   document.getElementById('portfolio-id').value = data?.id || '';
   document.getElementById('portfolio-title').value = data?.title || '';
-  document.getElementById('portfolio-category').value = data?.category || '';
+  document.getElementById('portfolio-label').value = data?.category || '';
   document.getElementById('portfolio-image').value = data?.image || '';
   const img = document.getElementById('portfolio-image-preview-img');
   if (data?.image) { img.src = data.image; img.style.display = 'inline-block'; }
@@ -44,7 +63,7 @@ async function savePortfolio() {
   const id = document.getElementById('portfolio-id').value;
   const body = {
     title: document.getElementById('portfolio-title').value,
-    category: document.getElementById('portfolio-category').value,
+    category: document.getElementById('portfolio-label').value,
     image: document.getElementById('portfolio-image').value,
     description: document.getElementById('portfolio-desc').value,
     tags: getMultiSelectValues('portfolio-tags'),

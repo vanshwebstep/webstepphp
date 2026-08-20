@@ -3,7 +3,7 @@
 // Connects your Next.js frontend to the PHP backend
 
 const BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost/webstepphp";
+  process.env.NEXT_PUBLIC_API_URL || "https://webstepdev.com/demo/webstepphp";
 
 /**
  * Fetch packages and tabs for the Packages component

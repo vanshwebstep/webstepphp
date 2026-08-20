@@ -29,13 +29,13 @@ $stmt = $db->query("
 
 $projects = array_map(function ($row) {
     return [
-        'title' => decodeText($row['title']),
+        'title'    => decodeText($row['title']),
         'category' => decodeText($row['category']),
-        'img' => decodeText($row['img']),
-        'desc' => decodeText($row['desc']),
-        'tags' => decodeList(json_decode($row['tags_json'] ?: '[]', true) ?: []),
-        'tech' => decodeList(json_decode($row['tech_json'] ?: '[]', true) ?: []),
-        'year' => decodeText($row['year']),
+        'img'      => decodeText($row['img']),
+        'desc'     => decodeText($row['desc']),
+        'tags'     => decodeList(json_decode($row['tags_json'] ?: '[]', true) ?: []),
+        'tech'     => decodeList(json_decode($row['tech_json'] ?: '[]', true) ?: []),
+        'year'     => decodeText($row['year']),
     ];
 }, $stmt->fetchAll());
 

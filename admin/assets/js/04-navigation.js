@@ -10,16 +10,17 @@ function showPage(name) {
 
 function loadPage(name) {
   const loaders = {
-    dashboard:          loadDashboard,
-    tabs:               loadTabs,
-    packages:           loadPackages,
-    portfolio:          loadPortfolio,
-    blogs:              loadBlogs,
-    'case-studies':     loadCaseStudies,
-    'service-pages':    loadServicePages,
-    'custom-options':   loadCustomOptions,
+    dashboard:            loadDashboard,
+    tabs:                 loadTabs,
+    packages:              loadPackages,
+    portfolio:              loadPortfolio,
+    'portfolio-categories': loadPortfolioCategories,
+    blogs:                loadBlogs,
+    'case-studies':       loadCaseStudies,
+    'service-pages':      loadServicePages,
+    'custom-options':     loadCustomOptions,
     'custom-submissions': () => loadSubs('custom', currentSubFilter),
-    inquiries:          loadInquiries,
+    inquiries:            loadInquiries,
   };
   loaders[name]?.();
 }

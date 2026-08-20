@@ -4,12 +4,17 @@ require_once __DIR__ . '/../includes/helpers.php';
 $db = getDB();
 $id = (int)($_GET['id'] ?? 0);
 
+// 'b2b' | 'packages' | '' (empty = no filter, sab dikha do)
+$page = $_GET['page'] ?? '';
+$filterCol = null;
+if ($page === 'b2b') $filterCol = 'show_on_b2b';
+elseif ($page === 'packages') $filterCol = 'show_on_packages';
+
 if ($id) {
     $stmt = $db->prepare("
-        SELECT p.id, p.title, t.name AS category, p.description AS des, p.symbol, p.price,
+        SELECT p.id, p.title, p.description AS des, p.symbol, p.price,
                p.price_desc AS pricedes, p.is_popular AS isPopular, p.btn_text AS btn
         FROM packages p
-        JOIN package_tabs t ON t.id = p.category_id
         WHERE p.id = ? AND p.is_active = 1
     ");
     $stmt->execute([$id]);
@@ -23,7 +28,6 @@ if ($id) {
 
     respond(['package' => [
         'title'     => $pkg['title'],
-        'category'  => $pkg['category'],
         'des'       => $pkg['des'],
         'symbol'    => $pkg['symbol'],
         'price'     => (float)$pkg['price'],
@@ -35,17 +39,18 @@ if ($id) {
     exit;
 }
 
-$tabs = $db->query("SELECT name FROM package_tabs WHERE is_active=1 ORDER BY sort_order ASC")
-           ->fetchAll(PDO::FETCH_COLUMN);
-
-$pkgStmt = $db->query("
-    SELECT p.id, p.title, t.name AS category, p.description AS des, p.symbol, p.price,
+$sql = "
+    SELECT p.id, p.title, p.description AS des, p.symbol, p.price,
            p.price_desc AS pricedes, p.is_popular AS isPopular, p.btn_text AS btn
     FROM packages p
-    JOIN package_tabs t ON t.id = p.category_id
     WHERE p.is_active = 1
-    ORDER BY t.sort_order, p.sort_order ASC
-");
+";
+if ($filterCol) {
+    $sql .= " AND p.`$filterCol` = 1";
+}
+$sql .= " ORDER BY p.sort_order ASC";
+
+$pkgStmt = $db->query($sql);
 $rawPkgs = $pkgStmt->fetchAll();
 
 $featStmt = $db->query("SELECT package_id, title FROM package_features ORDER BY sort_order ASC");
@@ -58,7 +63,6 @@ $packages = array_map(function($pkg) use ($allFeatures) {
     return [
         'id'         => (int)$pkg['id'],
         'title'      => $pkg['title'],
-        'category'   => $pkg['category'],
         'des'        => $pkg['des'],
         'symbol'     => $pkg['symbol'],
         'price'      => (float)$pkg['price'],
@@ -69,4 +73,4 @@ $packages = array_map(function($pkg) use ($allFeatures) {
     ];
 }, $rawPkgs);
 
-respond(['tabs' => $tabs, 'packages' => $packages]);
+respond(['tabs' => [], 'packages' => $packages]);

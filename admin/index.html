@@ -48,16 +48,21 @@
           <span class="icon">📊</span> Dashboard
         </div>
         <div class="nav-section">Packages</div>
-        <div class="nav-item" onclick="showPage('tabs')">
+        <!-- <div class="nav-item" onclick="showPage('tabs')">
           <span class="icon">🏷️</span> Categories / Tabs
-        </div>
+        </div> -->
         <div class="nav-item" onclick="showPage('packages')">
           <span class="icon">📦</span> Packages
         </div>
+      
         <div class="nav-section">Content</div>
+         <div class="nav-item" onclick="showPage('portfolio-categories')">
+  <span class="icon">🏷️</span> Portfolio Categories
+</div>
         <div class="nav-item" onclick="showPage('portfolio')">
           <span class="icon">PF</span> Portfolio Projects
         </div>
+      
         <div class="nav-item" onclick="showPage('blogs')">
           <span class="icon">BL</span> Blogs
         </div>
@@ -136,7 +141,7 @@
       </div>
 
       <!-- Tabs -->
-      <div id="page-tabs" class="page">
+      <!-- <div id="page-tabs" class="page">
         <div class="page-header">
           <div>
             <h2>Categories / Tabs</h2>
@@ -159,7 +164,7 @@
             </table>
           </div>
         </div>
-      </div>
+      </div> -->
 
       <!-- Packages -->
       <div id="page-packages" class="page">
@@ -188,7 +193,48 @@
           </div>
         </div>
       </div>
+<div id="page-portfolio-categories" class="page">
+  <div class="page-header">
+    <div>
+      <h2>Portfolio Categories</h2>
+      <p>Manage category options shown in Portfolio project form</p>
+    </div>
+    <button class="btn btn-primary" onclick="openPfCatModal()">+ Add Category</button>
+  </div>
+  <div class="card">
+    <div class="table-wrap">
+      <table id="pf-cat-table">
+        <thead>
+          <tr><th>Name</th><th>Order</th><th>Status</th><th>Actions</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</div>
 
+<div id="pf-cat-modal" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="pf-cat-modal-title">Add Category</h3>
+      <button class="modal-close" onclick="closeModal('pf-cat-modal')">✕</button>
+    </div>
+    <input type="hidden" id="pf-cat-id">
+    <div class="form-group"><label>Name</label><input id="pf-cat-name" placeholder="e.g. Healthcare"></div>
+    <div class="form-group"><label>Sort Order</label><input id="pf-cat-sort" type="number" value="0"></div>
+    <div class="form-group">
+      <label>Active</label>
+      <select id="pf-cat-active">
+        <option value="1">Yes</option>
+        <option value="0">No</option>
+      </select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('pf-cat-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="savePfCat()">Save</button>
+    </div>
+  </div>
+</div>
       <!-- Portfolio -->
       <div id="page-portfolio" class="page">
         <div class="page-header">
@@ -203,13 +249,13 @@
             <table id="portfolio-table">
               <thead>
                 <tr>
-                  <th>Title</th>
-                  <th>Category</th>
-                  <th>Tags</th>
-                  <th>Tech</th>
-                  <th>Year</th>
-                  <th>Status</th>
-                  <th>Actions</th>
+                <th>Title</th>
+                <th>Label</th>
+<th>Categories</th>
+<th>Tech</th>
+<th>Year</th>
+<th>Status</th>
+<th>Actions</th>
                 </tr>
               </thead>
               <tbody></tbody>
@@ -439,7 +485,17 @@
           </div>
           <input type="hidden" id="pkg-id">
           <div class="form-group"><label>Title</label><input id="pkg-title" placeholder="e.g. Website Pro"></div>
-          <div class="form-group"><label>Category</label><select id="pkg-category"></select></div>
+          <div class="form-group">
+            <label>Show On</label>
+            <div style="display:flex;gap:20px;align-items:center;">
+              <label style="display:flex;gap:6px;align-items:center;font-weight:500;">
+                <input type="checkbox" id="pkg-show-b2b"> B2B Sales Page
+              </label>
+              <label style="display:flex;gap:6px;align-items:center;font-weight:500;">
+                <input type="checkbox" id="pkg-show-packages"> Packages Page
+              </label>
+            </div>
+          </div>
           <div class="form-group"><label>Description</label><textarea id="pkg-desc" rows="2"
               placeholder="Short description..."></textarea></div>
           <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
@@ -477,8 +533,8 @@
           <input type="hidden" id="portfolio-id">
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
             <div class="form-group"><label>Title</label><input id="portfolio-title" placeholder="Dr. Treat"></div>
-            <div class="form-group"><label>Category Label</label><input id="portfolio-category"
-                placeholder="Healthcare / React.js"></div>
+           <div class="form-group"><label>Display Label</label><input id="portfolio-label" placeholder="e.g. UI & UX"></div>
+
           </div>
           <div class="form-group">
             <label>Image</label>
@@ -494,20 +550,10 @@
           <div class="form-group"><label>Description</label><textarea id="portfolio-desc" rows="3"
               placeholder="Short portfolio card description..."></textarea></div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-            <div class="form-group">
-              <label>Filter Tags</label>
-              <select id="portfolio-tags" multiple size="7">
-                <option value="UI & UX">UI & UX</option>
-                <option value="Shopify">Shopify</option>
-                <option value="WordPress">WordPress</option>
-                <option value="Front End Dev">Front End Dev</option>
-                <option value="Development">Development</option>
-                <option value="PHP">PHP</option>
-                <option value="Laravel">Laravel</option>
-                <option value="Node.js">Node.js</option>
-                <option value="AI">AI</option>
-              </select>
-            </div>
+           <div class="form-group">
+  <label>Category</label>
+  <select id="portfolio-tags" multiple size="7"></select>
+</div>
             <div class="form-group">
               <label>Tech Stack</label>
               <select id="portfolio-tech" multiple size="7">
@@ -833,6 +879,7 @@
   <script src="assets/js/12-custom-options.js"></script>
   <script src="assets/js/13-submissions.js"></script>
   <script src="assets/js/14-modals.js"></script>
+  <script src="assets/js/15-portfolio-categories.js"></script>
   <script src="assets/js/03-boot.js"></script>
 </body>
 
