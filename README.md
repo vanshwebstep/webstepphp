@@ -60,7 +60,7 @@ define('DB_NAME', 'webstep');
 
 In your Next.js project, add to `.env.local`:
 ```
-NEXT_PUBLIC_API_URL=https://webstepdev.com/demo/webstepphp
+NEXT_PUBLIC_API_URL=http://localhost/webstepphp
 ```
 
 ### 5. Replace frontend files
@@ -79,7 +79,7 @@ no changes needed there, it auto-fetches from the PHP API.
 
 Open in browser:
 ```
-https://webstepdev.com/demo/webstepphp/admin/index.html
+http://localhost/webstepphp/admin/index.html
 ```
 
 **Default credentials:** `admin` / `admin123`

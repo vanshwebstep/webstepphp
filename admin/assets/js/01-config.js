@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-const BASE = 'https://webstepdev.com/demo/webstepphp'; // CHANGE TO YOUR LOCAL/LIVE SERVER PATH
+const BASE = 'http://localhost/webstepphp'; // CHANGE TO YOUR LOCAL/LIVE SERVER PATH
 
 let currentPage       = 'dashboard';
 let allOpts           = [];
