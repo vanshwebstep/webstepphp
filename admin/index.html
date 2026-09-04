@@ -72,6 +72,10 @@
         <div class="nav-item" onclick="showPage('service-pages')">
           <span class="icon">SP</span> Service Pages
         </div>
+        <div class="nav-section">SEO Settings</div>
+        <div class="nav-item" onclick="showPage('seo')">
+          <span class="icon">🔍</span> Global SEO
+        </div>
         <div class="nav-section">Custom Builder</div>
         <div class="nav-item" onclick="showPage('custom-options')">
           <span class="icon">⚙️</span> Builder Options
@@ -340,6 +344,32 @@
                   <th>Title</th>
                   <th>Slug</th>
                   <th>Status</th>
+                  <th>Updated</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- SEO Settings -->
+      <div id="page-seo" class="page">
+        <div class="page-header">
+          <div>
+            <h2>Global SEO Settings</h2>
+            <p>Manage meta title, description, and keywords for different URLs</p>
+          </div>
+          <button class="btn btn-primary" onclick="openSeoModal()">+ Add SEO</button>
+        </div>
+        <div class="card">
+          <div class="table-wrap">
+            <table id="seo-table">
+              <thead>
+                <tr>
+                  <th>Page URL</th>
+                  <th>Meta Title</th>
                   <th>Updated</th>
                   <th>Actions</th>
                 </tr>
@@ -795,6 +825,38 @@
         </div>
       </div>
 
+      <!-- SEO Modal -->
+      <div id="seo-modal" class="modal-overlay">
+        <div class="modal" style="width:700px">
+          <div class="modal-header">
+            <h3 id="seo-modal-title">Edit SEO Settings</h3>
+            <button class="modal-close" onclick="closeModal('seo-modal')">x</button>
+          </div>
+          <input type="hidden" id="seo-id">
+          <div class="form-group">
+            <label>Page URL (Identifier)</label>
+            <input id="seo-page-url" placeholder="e.g. /home or /about">
+            <small style="color:var(--slate-400);font-size:12px;margin-top:4px;display:block;">The relative URL or page slug this SEO applies to.</small>
+          </div>
+          <div class="form-group">
+            <label>Meta Title</label>
+            <input id="seo-title" placeholder="e.g. Best Web Development Agency in India">
+          </div>
+          <div class="form-group">
+            <label>Meta Description</label>
+            <textarea id="seo-description" rows="3" placeholder="Description of the page for search engines..."></textarea>
+          </div>
+          <div class="form-group">
+            <label>Meta Keywords</label>
+            <textarea id="seo-keywords" rows="2" placeholder="web development, seo, agency..."></textarea>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal('seo-modal')">Cancel</button>
+            <button class="btn btn-primary" onclick="saveSeoSetting()">Save SEO</button>
+          </div>
+        </div>
+      </div>
+
       <!-- Custom Option Modal -->
       <div id="opt-modal" class="modal-overlay">
         <div class="modal">
@@ -880,6 +942,7 @@
   <script src="assets/js/13-submissions.js"></script>
   <script src="assets/js/14-modals.js"></script>
   <script src="assets/js/15-portfolio-categories.js"></script>
+  <script src="assets/js/16-seo.js"></script>
   <script src="assets/js/03-boot.js"></script>
 </body>
 

@@ -18,6 +18,7 @@ function loadPage(name) {
     blogs:                loadBlogs,
     'case-studies':       loadCaseStudies,
     'service-pages':      loadServicePages,
+    seo:                  loadSeoSettings,
     'custom-options':     loadCustomOptions,
     'custom-submissions': () => loadSubs('custom', currentSubFilter),
     inquiries:            loadInquiries,
