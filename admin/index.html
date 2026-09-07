@@ -81,6 +81,9 @@
           <span class="icon">⚙️</span> Builder Options
         </div>
         <div class="nav-section">Leads</div>
+        <div class="nav-item" onclick="showPage('subscribers')">
+          <span class="icon">📧</span> Subscribers <span class="badge" id="badge-subs">0</span>
+        </div>
         <div class="nav-item" onclick="showPage('custom-submissions')">
           <span class="icon">🛠️</span> Website Leads <span class="badge" id="badge-custom">0</span>
         </div>
@@ -405,6 +408,33 @@
                   <th>Description</th>
                   <th>Price</th>
                   <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Subscribers -->
+      <div id="page-subscribers" class="page">
+        <div class="page-header">
+          <div>
+            <h2>Newsletter Subscribers</h2>
+            <p>View all newsletter subscribers</p>
+          </div>
+        </div>
+        <div class="card">
+          <div class="table-wrap">
+            <table id="subs-subscribers-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Email</th>
+                  <th>Status</th>
+                  <th>Source</th>
+                  <th>Date</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -943,6 +973,7 @@
   <script src="assets/js/14-modals.js"></script>
   <script src="assets/js/15-portfolio-categories.js"></script>
   <script src="assets/js/16-seo.js"></script>
+  <script src="assets/js/17-subscribers.js"></script>
   <script src="assets/js/03-boot.js"></script>
 </body>
 

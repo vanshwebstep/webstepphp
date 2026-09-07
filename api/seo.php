@@ -5,14 +5,22 @@ header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
 
 $db = getDB();
-$page_url = $_GET['page_url'] ?? '';
+$raw_url = trim($_GET['page_url'] ?? '');
 
-if (!$page_url) {
+if (!$raw_url) {
     error('Page URL parameter is required');
 }
 
-$stmt = $db->prepare("SELECT title, description, keywords FROM seo_settings WHERE page_url = ?");
-$stmt->execute([$page_url]);
+$url_without_slash = ltrim($raw_url, '/');
+$url_with_slash = '/' . $url_without_slash;
+
+$stmt = $db->prepare("
+    SELECT title, description, keywords 
+    FROM seo_settings 
+    WHERE page_url = ? OR page_url = ? OR page_url = ?
+    LIMIT 1
+");
+$stmt->execute([$raw_url, $url_without_slash, $url_with_slash]);
 $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$row) {
@@ -25,3 +33,4 @@ if (!$row) {
 }
 
 success($row);
+

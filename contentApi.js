@@ -1,9 +1,10 @@
 // lib/contentApi.js
 // Replace your existing contentApi.js with this file
 // Connects your Next.js frontend to the PHP backend
+// https://webstepdev.com/demo/webstepphp
 
 const BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost/webstepphp";
+  process.env.NEXT_PUBLIC_API_URL || "https://webstepdev.com/demo/webstepphp";
 
 /**
  * Fetch packages and tabs for the Packages component
