@@ -10,16 +10,20 @@ header('Content-Type: application/json; charset=utf-8');
 $allowedOrigins = [
     'https://webstepdev.com',
     'http://localhost:3000',   // local Next.js dev
+    'http://localhost:3001',
+    'http://localhost:3002',
+    'http://127.0.0.1:3000',
+    'http://127.0.0.1:3001',
 ];
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
-if (in_array($origin, $allowedOrigins, true)) {
+if ($origin && (in_array($origin, $allowedOrigins, true) || preg_match('/^https?:\/\/(?:[a-z0-9-]+\.)?webstepdev\.com(?::\d+)?$/i', $origin))) {
     header('Access-Control-Allow-Origin: ' . $origin);
 }
 header('Access-Control-Allow-Credentials: true');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
 
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+if (($_SERVER['REQUEST_METHOD'] ?? '') === 'OPTIONS') {
     http_response_code(204);
     exit;
 }

@@ -38,6 +38,9 @@ $stmt->execute([
 ]);
 
 $leadId = $db->lastInsertId();
+$adminEmail = defined('ADMIN_NOTIFICATION_EMAIL') ? ADMIN_NOTIFICATION_EMAIL : 'info@webstepsolutions.com';
+$adminFallbackEmail = defined('ADMIN_FALLBACK_EMAIL') ? ADMIN_FALLBACK_EMAIL : 'kapilakshu848@gmail.com';
+
 $adminText = implode("\n", array_filter([
     "New plan inquiry #{$leadId}",
     $pkgId ? "Package ID: {$pkgId}" : '',
@@ -56,9 +59,13 @@ $adminHtml = '<div style="font-family:Arial,sans-serif;line-height:1.6;color:#0f
     . '</div>';
 
 try {
-    sendSmtpMail('kapilakshu848@gmail.com', 'Webstep Admin', 'New plan inquiry', $adminHtml, $adminText);
+    sendSmtpMail($adminEmail, 'Webstep Solutions Admin', 'New plan inquiry', $adminHtml, $adminText);
 } catch (Throwable $e) {
-    // Keep inquiry submission successful even if SMTP is unavailable.
+    if (!empty($adminFallbackEmail) && $adminFallbackEmail !== $adminEmail) {
+        try {
+            sendSmtpMail($adminFallbackEmail, 'Webstep Admin', 'New plan inquiry', $adminHtml, $adminText);
+        } catch (Throwable $e2) {}
+    }
 }
 
-success(null, 'Inquiry submitted! We will contact you shortly.');
+success(null, 'Inquiry submitted! We will contact you within one business day.');

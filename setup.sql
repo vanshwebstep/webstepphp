@@ -252,15 +252,52 @@ INSERT IGNORE INTO `case_studies`
 ('shopvault', 'ShopVault', 'An e-commerce engine that scales with ambition', 'E-Commerce', '["E-Commerce","Enterprise"]', 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=900&q=80', 'SV', 'ShopVault Ltd.', '8 months', '2023', '["Laravel","React","MySQL","Stripe","Redis"]', 'The legacy store failed under sale traffic and had a dated mobile checkout.', 'We built a custom Laravel commerce API, React storefront, Redis caching, and scalable infrastructure.', 'The store launched with stronger mobile conversion and no peak-sale downtime.', '[{"label":"Monthly GMV","val":"$2M+"},{"label":"Page Load","val":"0.8s"},{"label":"Conversion Lift","val":"+44%"}]', '["Headless React storefront","Laravel commerce API","Redis caching layer","Stripe payment integration","AWS auto-scaling setup"]', 'Webstep built something reliable for our busiest sales windows.', 'Marcus Webb', 'CTO, ShopVault Ltd.', 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&q=80', 1, '#f59e0b', '#fef3c7', '#b45309', '#92400e', 2),
 ('eduforge', 'EduForge LMS', 'Learning infrastructure for the next generation', 'Education', '["Education","SaaS"]', 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=900&q=80', 'EF', 'EduForge Group', '10 months', '2024', '["PHP","React","MySQL","WebRTC","AWS"]', 'Institutions were managing learning workflows with spreadsheets and disconnected tools.', 'We delivered an LMS with live classrooms, automated grading, analytics, and mobile access.', 'Students and institutions moved into one measurable learning workflow.', '[{"label":"Students Served","val":"50K+"},{"label":"Completion Rate","val":"92%"},{"label":"Institutions","val":"120+"}]', '["LMS web platform","Live WebRTC classrooms","Mobile student app","Automated grading engine","Analytics dashboard"]', 'The platform gave our teachers time back and made online learning manageable.', 'Prof. Amara Osei', 'Director, EduForge Group', 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=80&q=80', 0, '#10b981', '#d1fae5', '#047857', '#064e3b', 3);
 
- - -    % % %  S E O   S e t t i n g s    % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
- C R E A T E   T A B L E   I F   N O T   E X I S T S   s e o _ s e t t i n g s   ( 
-         i d                   I N T   U N S I G N E D   A U T O _ I N C R E M E N T   P R I M A R Y   K E Y , 
-         p a g e _ u r l       V A R C H A R ( 1 5 0 )   N O T   N U L L   U N I Q U E , 
-         	 i t l e             V A R C H A R ( 2 5 5 )   D E F A U L T   N U L L , 
-         d e s c r i p t i o n T E X T   D E F A U L T   N U L L , 
-         k e y w o r d s       T E X T   D E F A U L T   N U L L , 
-         c r e a t e d _ a t   T I M E S T A M P   D E F A U L T   C U R R E N T _ T I M E S T A M P , 
-         u p d a t e d _ a t   T I M E S T A M P   D E F A U L T   C U R R E N T _ T I M E S T A M P   O N   U P D A T E   C U R R E N T _ T I M E S T A M P 
- )   E N G I N E = I n n o D B ; 
-  
- 
+
+
+-- ─── SEO Settings ─────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS seo_settings (
+    id         INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    page_url   VARCHAR(150) NOT NULL UNIQUE,
+    	itle      VARCHAR(255) DEFAULT NULL,
+    description TEXT DEFAULT NULL,
+    keywords   TEXT DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- ─── Blog Categories & Blogs ──────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS log_categories (
+    id         INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    
+ame       VARCHAR(100) NOT NULL UNIQUE,
+    sort_order INT DEFAULT 0,
+    is_active  TINYINT(1) DEFAULT 1,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS logs (
+    id              INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    	itle           VARCHAR(255) NOT NULL,
+    slug            VARCHAR(200) NOT NULL UNIQUE,
+    category        VARCHAR(100) NOT NULL,
+    uthor          VARCHAR(150) DEFAULT 'Webstep Solutions Team',
+    uthor_bio      TEXT DEFAULT NULL,
+    uthor_avatar   VARCHAR(255) DEFAULT NULL,
+    image           VARCHAR(255) DEFAULT NULL,
+    excerpt         TEXT DEFAULT NULL,
+    content         LONGTEXT DEFAULT NULL,
+    	ags            TEXT DEFAULT NULL,
+    published_date  DATE DEFAULT NULL,
+    
+ead_time       VARCHAR(50) DEFAULT '5 min read',
+    iews           INT UNSIGNED DEFAULT 0,
+    likes           INT UNSIGNED DEFAULT 0,
+    eatured        TINYINT(1) DEFAULT 0,
+    sort_order      INT DEFAULT 0,
+    is_active       TINYINT(1) DEFAULT 1,
+    seo_title       VARCHAR(255) DEFAULT NULL,
+    seo_description TEXT DEFAULT NULL,
+    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

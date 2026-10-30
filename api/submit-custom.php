@@ -84,6 +84,9 @@ $featureLines = array_map(fn($f) => '- ' . ($f['title'] ?? '') . ' ($' . (float)
 // ═══════════════════════════════════════════
 // Admin notification email
 // ═══════════════════════════════════════════
+$adminEmail = defined('ADMIN_NOTIFICATION_EMAIL') ? ADMIN_NOTIFICATION_EMAIL : 'info@webstepsolutions.com';
+$adminFallbackEmail = defined('ADMIN_FALLBACK_EMAIL') ? ADMIN_FALLBACK_EMAIL : 'kapilakshu848@gmail.com';
+
 $adminText = implode("\n", array_filter([
     "New website lead #{$leadId}",
     "Source: {$source}",
@@ -106,9 +109,13 @@ $adminHtml = '<div style="font-family:Arial,sans-serif;line-height:1.6;color:#0f
     . '</div>';
 
 try {
-    sendSmtpMail('kapilakshu848@gmail.com', 'Webstep Admin', 'New website lead from ' . $source, $adminHtml, $adminText);
+    sendSmtpMail($adminEmail, 'Webstep Solutions Admin', 'New website lead from ' . $source, $adminHtml, $adminText);
 } catch (Throwable $e) {
-    // Keep lead submission successful even if SMTP is unavailable.
+    if (!empty($adminFallbackEmail) && $adminFallbackEmail !== $adminEmail) {
+        try {
+            sendSmtpMail($adminFallbackEmail, 'Webstep Admin', 'New website lead from ' . $source, $adminHtml, $adminText);
+        } catch (Throwable $e2) {}
+    }
 }
 
 // ═══════════════════════════════════════════
@@ -117,27 +124,27 @@ try {
 $userText = implode("\n", array_filter([
     "Hi {$name},",
     "",
-    "Thank you for reaching out to Webstep! We've received your request and our team will get back to you shortly.",
+    "Thank you for reaching out to Webstep Solutions! We have received your request and our team will review your requirements and reply within one business day.",
     "",
     $packageLines ? "Your Package Summary:\n" . implode("\n", $packageLines) : '',
     $featureLines ? "\nSelected Features:\n" . implode("\n", $featureLines) : '',
     "",
-    "If you have any questions in the meantime, just reply to this email.",
+    "If you have any questions in the meantime, just reply to this email or contact us at info@webstepsolutions.com.",
     "",
-    "— Webstep Team",
+    "— Webstep Solutions Team",
 ]));
 
 $userHtml = '<div style="font-family:Arial,sans-serif;line-height:1.6;color:#0f172a;max-width:560px;margin:0 auto">'
     . '<h2 style="color:#FF1F8E;margin-bottom:8px">Thanks for reaching out, ' . htmlspecialchars($name, ENT_QUOTES, 'UTF-8') . '!</h2>'
-    . '<p>We\'ve received your request and our team will get back to you shortly.</p>'
+    . '<p>Thank you for reaching out to <strong>Webstep Solutions</strong>! We have received your request and our team will review your requirements and reply within one business day.</p>'
     . ($packageLines ? '<h3 style="color:#334155;margin-top:20px;margin-bottom:6px">Your Package Summary</h3><p>' . nl2br(htmlspecialchars(implode("\n", $packageLines), ENT_QUOTES, 'UTF-8')) . '</p>' : '')
     . ($featureLines ? '<h3 style="color:#334155;margin-top:20px;margin-bottom:6px">Selected Features</h3><p>' . nl2br(htmlspecialchars(implode("\n", $featureLines), ENT_QUOTES, 'UTF-8')) . '</p>' : '')
-    . '<p style="margin-top:24px;color:#64748b;font-size:.9rem">If you have any questions in the meantime, just reply to this email.</p>'
-    . '<p style="margin-top:24px">— <strong>Webstep Team</strong></p>'
+    . '<p style="margin-top:24px;color:#64748b;font-size:.9rem">If you have any questions in the meantime, reply to this email or contact us at <a href="mailto:info@webstepsolutions.com" style="color:#FF1F8E">info@webstepsolutions.com</a>.</p>'
+    . '<p style="margin-top:24px">— <strong>Webstep Solutions Team</strong></p>'
     . '</div>';
 
 try {
-    sendSmtpMail($email, $name, 'We received your request — Webstep', $userHtml, $userText);
+    sendSmtpMail($email, $name, 'We received your request — Webstep Solutions', $userHtml, $userText);
 } catch (Throwable $e) {
     // Keep lead submission successful even if SMTP is unavailable.
 }

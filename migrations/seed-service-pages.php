@@ -52,8 +52,8 @@ function pageContent(string $type): array {
     return [
         'hero' => [
             'eyebrow' => 'Dedicated talent',
-            'title' => 'Hire Full-Time Developers Without Slowing Down Your Product Roadmap',
-            'subtitle' => 'Add vetted developers, designers, and full-stack engineers to your team with managed delivery support, clean reporting, and flexible monthly engagement.',
+            'title' => 'Hire Dedicated Developers for Your Web Projects',
+            'subtitle' => 'Add vetted React, Laravel, WordPress, and Shopify developers to your team with managed delivery support, clean reporting, and flexible monthly engagement.',
             'primaryCta' => 'Hire Developers',
             'secondaryCta' => 'Explore Portfolio',
             'panelTitle' => 'Dedicated remote team',
@@ -82,7 +82,8 @@ function pageContent(string $type): array {
 
 $pages = [
     ['slug' => 'industrial-training', 'title' => 'Industrial Training', 'sort_order' => 1, 'content' => pageContent('industrial')],
-    ['slug' => 'hire-full-time-developers', 'title' => 'Hire Full Time Developers', 'sort_order' => 2, 'content' => pageContent('hire')],
+    ['slug' => 'hire-dedicated-developers', 'title' => 'Hire Dedicated Developers', 'sort_order' => 2, 'content' => pageContent('hire')],
+    ['slug' => 'hire-full-time-developers', 'title' => 'Hire Dedicated Developers', 'sort_order' => 3, 'content' => pageContent('hire')],
 ];
 
 $stmt = $db->prepare("
@@ -100,4 +101,4 @@ foreach ($pages as $page) {
     ]);
 }
 
-echo "Service pages migrated and seeded\n";
+echo "Service pages migrated and seeded successfully!\n";

@@ -8,6 +8,10 @@ define('DB_NAME', 'u510451310_webstepphp');
 define('LOCAL_DB_USER', 'root');
 define('LOCAL_DB_PASS', '');
 
+// ─── Notification Settings ────────────────────────────────────────────────────
+define('ADMIN_NOTIFICATION_EMAIL', 'info@webstepsolutions.com');
+define('ADMIN_FALLBACK_EMAIL', 'kapilakshu848@gmail.com');
+
 function getDB(): PDO {
     static $pdo = null;
     if ($pdo === null) {
@@ -28,21 +32,31 @@ function getDB(): PDO {
                     PDO::ATTR_EMULATE_PREPARES   => false,
                 ]);
             } catch (PDOException $e2) {
-                // Try creating DB if local DB_NAME doesn't exist yet on MySQL
+                // Try fallback to local database name 'webstep'
                 try {
-                    $dsnNoDb = "mysql:host=" . DB_HOST . ";charset=utf8mb4";
-                    $tmpPdo = new PDO($dsnNoDb, LOCAL_DB_USER, LOCAL_DB_PASS);
-                    $tmpPdo->exec("CREATE DATABASE IF NOT EXISTS `" . DB_NAME . "`");
-                    $dsn = "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4";
+                    $dsn = "mysql:host=" . DB_HOST . ";dbname=webstep;charset=utf8mb4";
                     $pdo = new PDO($dsn, LOCAL_DB_USER, LOCAL_DB_PASS, [
                         PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
                         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
                         PDO::ATTR_EMULATE_PREPARES   => false,
                     ]);
                 } catch (PDOException $e3) {
-                    http_response_code(500);
-                    error_log('DB connection failed: ' . $e->getMessage());
-                    die(json_encode(['error' => 'Database connection failed: ' . $e->getMessage()]));
+                    // Try creating DB if local DB_NAME doesn't exist yet on MySQL
+                    try {
+                        $dsnNoDb = "mysql:host=" . DB_HOST . ";charset=utf8mb4";
+                        $tmpPdo = new PDO($dsnNoDb, LOCAL_DB_USER, LOCAL_DB_PASS);
+                        $tmpPdo->exec("CREATE DATABASE IF NOT EXISTS `" . DB_NAME . "`");
+                        $dsn = "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4";
+                        $pdo = new PDO($dsn, LOCAL_DB_USER, LOCAL_DB_PASS, [
+                            PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+                            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                            PDO::ATTR_EMULATE_PREPARES   => false,
+                        ]);
+                    } catch (PDOException $e4) {
+                        http_response_code(500);
+                        error_log('DB connection failed: ' . $e->getMessage());
+                        die(json_encode(['error' => 'Database connection failed: ' . $e->getMessage()]));
+                    }
                 }
             }
         }
